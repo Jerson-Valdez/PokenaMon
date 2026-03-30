@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#0D0D0D</color>
+    <color name="background">#000000</color>
     <color name="surface">#1A1A1A</color>
     <color name="surfaceVariant">#101010</color>
     <color name="primary">#CC0000</color>
     <color name="primaryVariant">#990000</color>
     <color name="text">#ffffff</color>
     <color name="textVariant">#666666</color>
+    <color name="edittext">#444444</color>
 </resources>
