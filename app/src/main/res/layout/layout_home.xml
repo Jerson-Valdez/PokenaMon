@@ -6,12 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".auth.Login">
+    tools:context=".core.Home">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Login"
+        android:text="Home"
         android:textSize="60sp"
         />
 </LinearLayout>
