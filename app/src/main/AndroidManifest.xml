@@ -13,12 +13,32 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Pokenamon">
         <activity
-            android:name=".Main"
+            android:name=".core.Home"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".core.Battle"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".core.Collection"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".core.Gacha"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".auth.Login"
+            android:exported="false">
+        </activity>
+        <activity
+            android:name=".auth.Register"
+            android:exported="false">
         </activity>
     </application>
 </manifest>
