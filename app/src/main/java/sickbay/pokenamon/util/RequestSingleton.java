@@ -1,4 +1,4 @@
-package sickbay.pokenamon.network;
+package sickbay.pokenamon.util;
 
 import android.content.Context;
 import android.graphics.Bitmap;
