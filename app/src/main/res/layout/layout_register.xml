@@ -16,7 +16,7 @@
         android:layout_marginTop="70dp"
         android:scaleX="1.5"
         android:scaleY="1.5"
-        android:src="@mipmap/full_logo" />
+        android:src="@mipmap/logo_round" />
 
     <TextView
         android:layout_width="match_parent"
@@ -100,7 +100,7 @@
         android:background="none"
         android:text="Already have an account?"
         android:textAllCaps="false"
-        android:textColor="@color/primaryVariant"
+        android:textColor="@color/primaryVariant2"
         android:textSize="15sp"
         />
 
