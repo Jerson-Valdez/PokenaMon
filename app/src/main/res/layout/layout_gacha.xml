@@ -74,6 +74,7 @@
         android:textSize="16sp"/>
 
     <ImageView
+        android:id="@+id/pokeball"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:src="@mipmap/ic_launcher_foreground"
@@ -98,6 +99,7 @@
         android:layout_marginTop="10dp"/>
 
     <Button
+        android:id="@+id/draw10x"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Draw 10x - 900 coins"
@@ -110,6 +112,7 @@
         android:background="@drawable/rect"/>
 
     <Button
+        android:id="@+id/draw1x"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Draw 1x - 100 coins"
