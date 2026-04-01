@@ -45,6 +45,12 @@ public class Register extends AppCompatActivity {
     }
 
     private void action(){
+        alreadyHaveAccount.setOnClickListener(v -> {
+            Intent intent = new Intent(Register.this, Login.class);
+            startActivity(intent);
+            finish();
+        });
+
         signUp.setOnClickListener(v -> {
             if(email.getText().toString().isEmpty() ||
                     username.getText().toString().isEmpty() ||
