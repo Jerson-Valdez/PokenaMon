@@ -11,4 +11,60 @@
     <color name="edittext">#444444</color>
     <color name="card">#222224</color>
     <color name="coin">#EAB308</color>
+    <color name="coin1">#1AEAB308</color>
+
+    //types
+    <color name="normal">#A8A77A</color>
+    <color name="normal1">#1AA8A77A</color>
+
+    <color name="fire">#EE8130</color>
+    <color name="fire1">#1AEE8130</color>
+
+    <color name="grass">#7AC74C</color>
+    <color name="grass1">#1A7AC74C</color>
+
+    <color name="water">#6390F0</color>
+    <color name="water1">#1A6390F0</color>
+
+    <color name="electric">#F7D02C</color>
+    <color name="electric1">#1AF7D02C</color>
+
+    <color name="flying">#A98FF3</color>
+    <color name="flying1">#1AA98FF3</color>
+
+    <color name="poison">#A33EA1</color>
+    <color name="poison1">#1AA33EA1</color>
+
+    <color name="ground">#E2BF65</color>
+    <color name="ground1">#1AE2BF65</color>
+
+    <color name="ice">#96D9D6</color>
+    <color name="ice1">#1A96D9D6</color>
+
+    <color name="psychic">#F95587</color>
+    <color name="psychic1">#1AF95587</color>
+
+    <color name="fighting">#C22E28</color>
+    <color name="fighting1">#1AC22E28</color>
+
+    <color name="dark">#705746</color>
+    <color name="dark1">#1A705746</color>
+
+    <color name="ghost">#735797</color>
+    <color name="ghost1">#1A735797</color>
+
+    <color name="rock">#B6A136</color>
+    <color name="rock1">#1AB6A136</color>
+
+    <color name="bug">#A6B91A</color>
+    <color name="bug1">#1AA6B91A</color>
+
+    <color name="dragon">#6F35FC</color>
+    <color name="dragon1">#1A6F35FC</color>
+
+    <color name="steel">#B7B7CE</color>
+    <color name="steel1">#1AB7B7CE</color>
+
+    <color name="fairy">#D685AD</color>
+    <color name="fairy1">#1AD685AD</color>
 </resources>

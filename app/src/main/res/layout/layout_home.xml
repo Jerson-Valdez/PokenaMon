@@ -57,7 +57,7 @@
                 android:background="@drawable/gold"
                 android:textColor="@color/coin"
                 android:textSize="20sp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="18dp"
                 />
 
         </LinearLayout>
