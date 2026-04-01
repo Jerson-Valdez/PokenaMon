@@ -12,11 +12,11 @@
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="70dp"
-        android:scaleX="1.5"
-        android:scaleY="1.5"
-        android:src="@mipmap/logo_round" />
+        android:scaleX="3"
+        android:scaleY="3"
+        android:src="@mipmap/full_logo_foreground" />
 
     <TextView
         android:layout_width="match_parent"
