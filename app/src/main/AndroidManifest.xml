@@ -13,7 +13,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Pokenamon">
         <activity
-            android:name=".core.Home"
+            android:name=".core.Gacha"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,10 +28,10 @@
             android:name=".core.Collection"
             android:exported="false">
         </activity>
-        <activity
-            android:name=".core.Gacha"
-            android:exported="false">
-        </activity>
+<!--        <activity-->
+<!--            android:name=".core.Gacha"-->
+<!--            android:exported="false">-->
+<!--        </activity>-->
         <activity
             android:name=".auth.Login"
             android:exported="false">
