@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#0D0D0D</color>
-    <color name="surface">#1A1A1A</color>
-    <color name="surfaceVariant">#101010</color>
-    <color name="primary">#CC0000</color>
-    <color name="primaryVariant">#990000</color>
-    <color name="primaryVariant2">#FF1C1C</color>
+    <color name="background">#0B0B0B</color>
+    <color name="primary">#FF1C1C</color>
+    <color name="secondary">#222224</color>
     <color name="text">#ffffff</color>
-    <color name="textVariant">#666666</color>
-    <color name="edittext">#444444</color>
-    <color name="card">#222224</color>
+    <color name="textVariant">#DFDFDF</color>
     <color name="coin">#EAB308</color>
     <color name="coin1">#1AEAB308</color>
+    <color name="redShadow">#80DF1818</color>
+    <color name="blackShadow">#40000000</color>
 
     //types
     <color name="normal">#A8A77A</color>

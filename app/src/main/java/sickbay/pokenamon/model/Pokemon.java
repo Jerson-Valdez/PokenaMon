@@ -15,10 +15,11 @@ public class Pokemon implements Serializable {
     private List<Integer> movePower;
     private String imageUrl;
     private String userId;
+    private long captureAt;
 
     public Pokemon() {}
 
-    public Pokemon(int id, String name, List<String> types, int stars, List<String> moves, List<Integer> movePower, String imageUrl, String userId) {
+    public Pokemon(int id, String name, List<String> types, int stars, List<String> moves, List<Integer> movePower, String imageUrl, String userId, long captureAt) {
         this.id = id;
         this.name = name;
         this.types = types;
@@ -28,6 +29,7 @@ public class Pokemon implements Serializable {
         this.imageUrl = imageUrl;
         this.userId = userId;
         this.level = 1;
+        this.captureAt = captureAt;
     }
 
     public int getId() { return id; }
@@ -56,4 +58,7 @@ public class Pokemon implements Serializable {
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
+
+    public long getTimestamp() { return captureAt; }
+    public void setTimestamp(long captureAt) { this.captureAt = captureAt; }
 }
