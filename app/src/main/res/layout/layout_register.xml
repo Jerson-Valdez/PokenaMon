@@ -38,7 +38,7 @@
         android:textSize="16sp"
         android:inputType="textEmailAddress"
         android:hint="Email Address"
-        />
+        app:backgroundTint="@null"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -59,7 +59,7 @@
         android:layout_marginTop="7dp"
         android:textSize="16sp"
         android:hint="Username"
-        />
+        app:backgroundTint="@null"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -81,7 +81,7 @@
         android:layout_marginTop="7dp"
         android:inputType="textPassword"
         android:hint="Password"
-        />
+        app:backgroundTint="@null"/>
 
     <TextView
         android:layout_width="match_parent"
@@ -103,7 +103,7 @@
         android:layout_marginTop="7dp"
         android:inputType="textPassword"
         android:hint="Confirm Password"
-        />
+        app:backgroundTint="@null"/>
 
     <Space
         android:layout_width="match_parent"
@@ -135,6 +135,6 @@
         android:padding="10dp"
         android:background="@drawable/rect"
         android:textStyle="bold"
-        />
+        app:backgroundTint="@null"/>
 
 </LinearLayout>

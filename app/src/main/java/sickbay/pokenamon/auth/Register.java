@@ -17,6 +17,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.controller.UserManager;
+import sickbay.pokenamon.core.Gacha;
 import sickbay.pokenamon.core.Home;
 import sickbay.pokenamon.model.User;
 
@@ -84,7 +85,7 @@ public class Register extends AppCompatActivity {
                                         UserManager.getInstance().setUser(newUser);
                                         new Auth(context).setRememberMe(email, password);
                                         Toast.makeText(context, "Account Created!", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(Register.this, Home.class);
+                                        Intent intent = new Intent(Register.this, Gacha.class);
                                         startActivity(intent);
                                         finish();
                                     }

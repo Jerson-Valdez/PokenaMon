@@ -6,7 +6,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="20dp"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="50dp"
     android:background="@color/background"
     tools:context=".core.Home">
     
@@ -70,7 +71,8 @@
         android:orientation="vertical"
         android:padding="20dp"
         android:layout_marginTop="10dp"
-        android:background="@drawable/rect2">
+        android:background="@drawable/rect2"
+        app:backgroundTint="@null">
 
         <TextView
             android:layout_width="match_parent"
@@ -78,7 +80,8 @@
             android:text="Ready to Battle and gain some rewards?"
             android:textColor="@color/text"
             android:textStyle="bold"
-            android:textSize="17sp"/>
+            android:textSize="17sp"
+            />
 
         <TextView
             android:layout_width="match_parent"
@@ -96,7 +99,7 @@
             >
                 <Button
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="Start Battle"
                     android:textSize="15sp"
@@ -105,11 +108,11 @@
                     android:background="@drawable/rect3"
                     android:layout_marginRight="20dp"
                     android:textStyle="bold"
-                    />
+                    app:backgroundTint="@null"/>
 
                 <Button
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:text="Change Pokemon"
                     android:textSize="15sp"
@@ -117,7 +120,7 @@
                     android:textColor="@color/primary"
                     android:background="@drawable/black"
                     android:textStyle="bold"
-                    />
+                    app:backgroundTint="@null"/>
         </LinearLayout>
     </LinearLayout>
 
@@ -129,13 +132,13 @@
         
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
             android:background="@drawable/card"
             android:padding="20dp"
             android:layout_marginRight="10dp"
-            >
+            app:backgroundTint="@null">
 
             <ImageView
                 android:layout_width="match_parent"
@@ -161,11 +164,12 @@
 
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
             android:background="@drawable/card"
-            android:padding="20dp">
+            android:padding="20dp"
+            app:backgroundTint="@null">
 
             <ImageView
                 android:layout_width="match_parent"
