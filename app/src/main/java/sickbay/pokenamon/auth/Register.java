@@ -85,7 +85,7 @@ public class Register extends AppCompatActivity {
                                         UserManager.getInstance().setUser(newUser);
                                         new Auth(context).setRememberMe(email, password);
                                         Toast.makeText(context, "Account Created!", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(Register.this, Gacha.class);
+                                        Intent intent = new Intent(Register.this, Home.class);
                                         startActivity(intent);
                                         finish();
                                     }

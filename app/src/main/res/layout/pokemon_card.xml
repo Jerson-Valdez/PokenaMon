@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="5dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@drawable/rectangle"
-        android:padding="12dp">
+        android:padding="8dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -28,7 +28,8 @@
             android:textStyle="bold"
             android:textColor="@color/text"
             android:text="FIRE"
-            android:padding="4dp"
+            android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
             android:background="@drawable/type"
             android:layout_marginEnd="4dp"/>
 
@@ -40,14 +41,17 @@
                 android:textStyle="bold"
                 android:textColor="@color/text"
                 android:text="FLYING"
-                android:padding="4dp"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
                 android:background="@drawable/type" />
         </LinearLayout>
 
         <ImageView
             android:id="@+id/pokemon_image"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleX="1.5"
+            android:scaleY="1.5"
             android:layout_gravity="center"
             android:src="@mipmap/full_logo_foreground"
             android:scaleType="centerInside"/>
@@ -56,26 +60,29 @@
             android:id="@+id/pokemon_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:text="Charizard"
             android:layout_gravity="center"
-            android:layout_marginTop="4dp"/>
+            android:textColor="@color/text"
+            />
 
         <TextView
             android:id="@+id/pokemon_level"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="11sp"
+            android:textSize="10sp"
             android:text="LVL. 50"
+            android:textStyle="bold"
             android:layout_gravity="center"/>
 
         <TextView
             android:id="@+id/pokemon_stars"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
+            android:textSize="24sp"
             android:text="★★★"
+            android:textStyle="bold"
             android:layout_gravity="center"/>
 
     </LinearLayout>

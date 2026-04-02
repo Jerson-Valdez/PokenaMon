@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -41,6 +42,7 @@ import okhttp3.Response;
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.controller.PokemonAdapter;
 import sickbay.pokenamon.controller.UserManager;
+import sickbay.pokenamon.helper.BottomNavHelper;
 import sickbay.pokenamon.model.Pokemon;
 import sickbay.pokenamon.model.User;
 
@@ -48,6 +50,7 @@ public class Gacha extends AppCompatActivity {
     Button draw10x, draw1x;
     ImageView pokeball;
     RecyclerView recyclerViewGacha;
+    TextView tvCoins;
 
     Context context = this;
     int coins = 0;
@@ -58,7 +61,6 @@ public class Gacha extends AppCompatActivity {
     List<Pokemon> pulledPokemonList;
     PokemonAdapter adapter;
 
-    // CRITICAL FIX: Only ONE client for the whole app to prevent Memory Exhaustion
     private final OkHttpClient client = new OkHttpClient();
 
     @Override
@@ -74,6 +76,7 @@ public class Gacha extends AppCompatActivity {
         draw10x = findViewById(R.id.draw10x);
         draw1x = findViewById(R.id.draw1x);
         pokeball = findViewById(R.id.pokeball);
+        tvCoins = findViewById(R.id.coins);
 
         recyclerViewGacha = findViewById(R.id.recyclerViewGacha);
         recyclerViewGacha.setLayoutManager(new GridLayoutManager(this, 2));
@@ -84,6 +87,9 @@ public class Gacha extends AppCompatActivity {
         } else {
             fetchCoinsFromDatabase();
         }
+        if (coins != -1) tvCoins.setText(String.format("%,d", coins));
+
+        BottomNavHelper.setup(this);
     }
 
     private void action() {
@@ -105,17 +111,12 @@ public class Gacha extends AppCompatActivity {
                 updateUserCoins(-100);
                 chosenRand = new int[1];
                 chosenRand[0] = rand(1, 100);
-                Toast.makeText(context, "" + chosenRand[0], Toast.LENGTH_SHORT).show();
                 animatePokeballAndFetch(1);
             } else {
                 Toast.makeText(context, "Not enough coins", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
-    // -------------------------------------------------------------
-    // DATABASE & ANIMATION LOGIC
-    // -------------------------------------------------------------
 
     private void updateUserCoins(int amountToChange) {
         coins += amountToChange;
@@ -125,6 +126,7 @@ public class Gacha extends AppCompatActivity {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseDatabase.getInstance().getReference("users")
                 .child(uid).child("coins").setValue(coins);
+        if (coins != -1) tvCoins.setText(String.format("%,d", coins));
     }
 
     private void fetchCoinsFromDatabase() {
@@ -134,7 +136,6 @@ public class Gacha extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
-                            // Safe parsing just in case it was stored as a String or Double
                             coins = Integer.parseInt(String.valueOf(snapshot.getValue()));
                         }
                     }
@@ -171,7 +172,6 @@ public class Gacha extends AppCompatActivity {
         shake.start();
 
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            // CRITICAL FIX: Prevent crash if user exits app during animation
             if (isFinishing() || isDestroyed()) return;
 
             pokeball.setVisibility(View.GONE);
@@ -179,15 +179,10 @@ public class Gacha extends AppCompatActivity {
 
             draw1x.setEnabled(true);
             draw10x.setEnabled(true);
-            Toast.makeText(context, "Fetching after animation", Toast.LENGTH_SHORT).show();
             fetchGachaData(pulls);
 
         }, 1200);
     }
-
-    // -------------------------------------------------------------
-    // API & GACHA CORE
-    // -------------------------------------------------------------
 
     private void fetchGachaData(int maxPulls) {
         ProgressDialog progressDialog = new ProgressDialog(this);
@@ -213,7 +208,6 @@ public class Gacha extends AppCompatActivity {
                         for (DataSnapshot child : snapshot.getChildren()) {
                             if (currentPos == randomPos) {
 
-                                // CRITICAL FIX: Safe Parsing to prevent Unboxing NPE crashes
                                 Object idObj = child.child("id").getValue();
                                 Object starObj = child.child("stars").getValue();
 
@@ -240,7 +234,6 @@ public class Gacha extends AppCompatActivity {
         String url = "https://pokeapi.co/api/v2/pokemon/" + id;
         Request request = new Request.Builder().url(url).build();
 
-        // Use the global client here
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
@@ -263,8 +256,7 @@ public class Gacha extends AppCompatActivity {
                         JSONArray allMoves = jsonObject.getJSONArray("moves");
                         List<String> chosenMoves = new ArrayList<>();
                         List<Integer> chosenPower = new ArrayList<>();
-                        
-                        // Pre-fill lists to use indices safely if needed, or just add as they come
+
                         for (int i = 0; i < 4; i++) {
                             chosenMoves.add("");
                             chosenPower.add(0);
@@ -273,7 +265,6 @@ public class Gacha extends AppCompatActivity {
                         Random r = new Random();
                         int[] movesFetched = {0};
 
-                        // Edge case: If a Pokemon has less than 4 moves in the API
                         int moveLimit = Math.min(allMoves.length(), 4);
 
                         for (int i = 0; i < moveLimit; i++) {
@@ -336,7 +327,10 @@ public class Gacha extends AppCompatActivity {
                                      int maxPulls, ProgressDialog dialog) {
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        Pokemon newPokemon = new Pokemon(id, name, types, stars, moves, movePower, imageUrl, uid);
+
+        long currentTime = System.currentTimeMillis();
+
+        Pokemon newPokemon = new Pokemon(id, name, types, stars, moves, movePower, imageUrl, uid, currentTime);
 
         runOnUiThread(() -> {
             pulledPokemonList.add(newPokemon);

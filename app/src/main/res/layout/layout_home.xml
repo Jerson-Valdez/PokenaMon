@@ -1,214 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingHorizontal="20dp"
-    android:paddingVertical="50dp"
     android:background="@color/background"
     tools:context=".core.Home">
-    
-    <LinearLayout
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="65dp"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2.5"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_height="0dp"
-                android:layout_width="match_parent"
-                android:layout_weight="1"
-                android:text="Welcome Back, "
-                android:textSize="20sp"
-                android:textColor="@color/textVariant"
-                />
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="User"
-                android:textSize="33sp"
-                android:layout_marginTop="-12dp"
-                android:textStyle="bold"
-                android:textColor="@color/text"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="2,000"
-                android:textAlignment="center"
-                android:textStyle="bold"
-                android:background="@drawable/gold"
-                android:textColor="@color/coin"
-                android:textSize="20sp"
-                android:layout_marginTop="18dp"
-                />
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/rect2"
-        app:backgroundTint="@null">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Ready to Battle and gain some rewards?"
-            android:textColor="@color/text"
-            android:textStyle="bold"
-            android:textSize="17sp"
-            />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Your current picked Pokemon was "
-            android:textColor="@color/text"
-            android:textSize="15sp"
-            android:layout_marginTop="10dp"/>
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="50dp"
+        android:paddingBottom="100dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="20dp"
-            >
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="Start Battle"
-                    android:textSize="15sp"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary"
-                    android:background="@drawable/rect3"
-                    android:layout_marginRight="20dp"
-                    android:textStyle="bold"
-                    app:backgroundTint="@null"/>
-
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:text="Change Pokemon"
-                    android:textSize="15sp"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary"
-                    android:background="@drawable/black"
-                    android:textStyle="bold"
-                    app:backgroundTint="@null"/>
-        </LinearLayout>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="20dp">
-        
-        <LinearLayout
-            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:background="@drawable/card"
-            android:padding="20dp"
-            android:layout_marginRight="10dp"
-            app:backgroundTint="@null">
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:src="@drawable/tabler_icon_pokeball"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Summon"
-                android:textColor="@color/primaryVariant2"
-                android:textStyle="bold"
-                android:textAlignment="center"
-                android:textSize="25sp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Draw a Pokemon"
-                android:textColor="@color/primaryVariant2"
-                android:textSize="15sp"
-                android:textAlignment="center"/>
-            
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:background="@drawable/card"
-            android:padding="20dp"
-            app:backgroundTint="@null">
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:src="@drawable/tabler_icon_library"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Collection"
-                android:textColor="@color/primaryVariant2"
-                android:textStyle="bold"
-                android:textAlignment="center"
-                android:textSize="25sp"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="View your Collection"
-                android:textColor="@color/primaryVariant2"
-                android:textSize="15sp"
-                android:textAlignment="center"/>
-
-        </LinearLayout>
-        
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Recent Captures"
-        android:textColor="@color/text"
-        android:textSize="25sp"
-        android:layout_marginVertical="10dp"
-        android:textStyle="bold"
-        />
-    
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+            android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -217,58 +28,189 @@
 
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="@drawable/rectangle"
-                android:layout_marginRight="10dp">
+                android:layout_height="wrap_content"
+                android:layout_weight="2.5"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:text="Welcome Back, "
+                    android:textSize="16sp"
+                    android:textColor="@color/textVariant" />
 
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
                 <TextView
+                    android:id="@+id/homeUsername"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-
+                    android:layout_height="wrap_content"
+                    android:text="Trainer"
+                    android:textSize="28sp"
+                    android:layout_marginTop="-5dp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text"/>
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="@drawable/rectangle">
+                android:orientation="horizontal">
 
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
                 <TextView
+                    android:id="@+id/homeCoins"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
-
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textAlignment="center"
+                    android:textStyle="bold"
+                    android:background="@drawable/gold"
+                    android:textColor="@color/coin"
+                    android:textSize="20sp"
+                    android:layout_gravity="center"/>
             </LinearLayout>
-
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/rect2">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ready to Battle and gain some rewards?"
+                android:textColor="@color/text"
+                android:textStyle="bold"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Your current picked Pokemon was "
+                android:textColor="@color/textVariant"
+                android:textSize="12sp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp">
+                <Button
+                    android:id="@+id/startBattle"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Start Battle"
+                    android:textSize="14sp"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary"
+                    android:background="@drawable/rect3"
+                    android:layout_marginEnd="5dp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@null"/>
+
+                <Button
+                    android:id="@+id/changePokemon"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Change Pokemon"
+                    android:textSize="14sp"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary"
+                    android:background="@drawable/black"
+                    android:textStyle="bold"
+                    app:backgroundTint="@null"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp">
+
+            <LinearLayout
+                android:id="@+id/btnQuickSummon"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/card"
+                android:padding="20dp"
+                android:layout_marginEnd="10dp">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/tabler_icon_pokeball"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Summon"
+                    android:textColor="@color/primary"
+                    android:textStyle="bold"
+                    android:textAlignment="center"
+                    android:textSize="25sp"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Draw a Pokemon"
+                    android:textColor="@color/primary"
+                    android:textSize="15sp"
+                    android:textAlignment="center"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btnQuickCollection"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:background="@drawable/card"
+                android:padding="20dp">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/tabler_icon_library"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Collection"
+                    android:textColor="@color/primary"
+                    android:textStyle="bold"
+                    android:textAlignment="center"
+                    android:textSize="25sp"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="View your Collection"
+                    android:textColor="@color/primary"
+                    android:textSize="15sp"
+                    android:textAlignment="center"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Recent Captures"
+            android:textColor="@color/text"
+            android:textSize="25sp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewRecent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:nestedScrollingEnabled="false" />
+
     </LinearLayout>
+    </ScrollView>
 
+    <include layout="@layout/navbar" />
 
-</LinearLayout>
+</RelativeLayout>

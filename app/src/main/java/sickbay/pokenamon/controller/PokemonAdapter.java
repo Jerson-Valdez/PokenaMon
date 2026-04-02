@@ -36,7 +36,6 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.PokemonV
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.pokemon_card, parent, false);
             return new PokemonViewHolder(view);
         } catch (Exception e) {
-            // If the XML file name is wrong, it crashes here.
             Toast.makeText(parent.getContext(), "CRASH IN ONCREATEVIEW: " + e.getMessage(), Toast.LENGTH_LONG).show();
             throw e;
         }
@@ -49,7 +48,6 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.PokemonV
         try {
             Pokemon pokemon = pokemonList.get(position);
 
-            // Check if the Pokemon object itself is null
             if (pokemon == null) {
                 Toast.makeText(ctx, "Pokemon at position " + position + " is null!", Toast.LENGTH_SHORT).show();
                 return;
@@ -151,7 +149,6 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.PokemonV
     @Override
     public int getItemCount() {
         if (pokemonList == null) {
-            // A common crash is getItemCount returning null. This prevents it.
             return 0;
         }
         return pokemonList.size();
