@@ -7,7 +7,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/background"
-    android:padding="20dp"
+    android:paddingVertical="50dp"
+    android:paddingHorizontal="20dp"
     tools:context=".core.Gacha">
 
     <LinearLayout
@@ -34,7 +35,6 @@
             android:background="@drawable/gold"
             android:textColor="@color/coin"
             android:textSize="20sp"
-
             />
 
     </LinearLayout>
@@ -76,11 +76,24 @@
     <ImageView
         android:id="@+id/pokeball"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:src="@mipmap/ic_launcher_foreground"
-        android:scaleX="4"
-        android:scaleY="4"
-        android:layout_marginTop="80dp"/>
+        android:scaleX="2"
+        android:scaleY="2"
+        android:layout_marginTop="20dp"
+        android:visibility="gone"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewGacha"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:padding="8dp"
+        android:visibility="visible" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -109,7 +122,8 @@
         android:layout_marginTop="10dp"
         android:padding="15dp"
         android:textAllCaps="false"
-        android:background="@drawable/rect"/>
+        android:background="@drawable/rect"
+        app:backgroundTint="@null"/>
 
     <Button
         android:id="@+id/draw1x"
@@ -122,6 +136,7 @@
         android:textStyle="bold"
         android:textColor="@color/primaryVariant2"
         android:textAllCaps="false"
-        android:background="@drawable/card"/>
+        android:background="@drawable/card"
+        app:backgroundTint="@null"/>
 
 </LinearLayout>
