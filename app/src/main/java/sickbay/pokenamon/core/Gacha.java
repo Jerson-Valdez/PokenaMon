@@ -196,7 +196,7 @@ public class Gacha extends AppCompatActivity {
 
         for (int i = 0; i < maxPulls; i++) {
             int luck = chosenRand[i];
-            String tier = (luck <= 5) ? "legendary" : (luck <= 20) ? "ultra_rare" : (luck <= 50) ? "rare" : "common";
+            String tier = (luck <= 2) ? "legendary" : (luck <= 10) ? "ultra_rare" : (luck <= 30) ? "rare" : "common";
 
             db.child(tier).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override

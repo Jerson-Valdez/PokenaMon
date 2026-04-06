@@ -56,13 +56,13 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Legendary - 5%"
+            android:text="Legendary - 2%"
             android:textColor="@color/textVariant"
             android:textSize="14sp"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ultra Rare - 15%"
+            android:text="Ultra Rare - 10%"
             android:textColor="@color/textVariant"
             android:textSize="14sp"/>
         <TextView
@@ -74,7 +74,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Common - 50%"
+            android:text="Common - 58%"
             android:textColor="@color/textVariant"
             android:textSize="14sp"/>
 
