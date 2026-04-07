@@ -8,6 +8,7 @@
     app:cardElevation="4dp">
 
     <LinearLayout
+        android:id="@+id/pokemon_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -60,7 +61,7 @@
             android:id="@+id/pokemon_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:text="Charizard"
             android:layout_gravity="center"

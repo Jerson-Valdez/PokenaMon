@@ -16,6 +16,7 @@ public class Pokemon implements Serializable {
     private String imageUrl;
     private String userId;
     private long captureAt;
+    private boolean isSelected;
 
     public Pokemon() {}
 
@@ -30,6 +31,7 @@ public class Pokemon implements Serializable {
         this.userId = userId;
         this.level = 1;
         this.captureAt = captureAt;
+        this.isSelected = false;
     }
 
     public int getId() { return id; }
