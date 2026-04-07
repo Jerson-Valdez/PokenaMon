@@ -76,7 +76,15 @@ public class Home extends AppCompatActivity {
         });
 
         btnCollection.setOnClickListener(v -> {
-            Toast.makeText(this, "Collection coming soon!", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, Collection.class));
+            overridePendingTransition(0, 0);
+            finish();
+        });
+
+        changePokemon.setOnClickListener(v -> {
+            startActivity(new Intent(this, Collection.class));
+            overridePendingTransition(0, 0);
+            finish();
         });
 
         BottomNavHelper.setup(this);

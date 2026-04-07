@@ -1,6 +1,7 @@
 package sickbay.pokenamon.controller;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +20,7 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.helper.PokemonDetail;
 import sickbay.pokenamon.model.Pokemon;
 
 public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder> {
@@ -99,6 +101,13 @@ public class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.PokemonV
                     Toast.makeText(ctx, "Glide Image Crash: " + glideEx.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
+
+            holder.itemView.setOnClickListener(v -> {
+                Context context = v.getContext();
+                Intent intent = new Intent(context, PokemonDetail.class);
+                intent.putExtra("selected_pokemon", pokemon); // Passing the whole object!
+                context.startActivity(intent);
+            });
 
         } catch (Exception e) {
             Toast.makeText(ctx, "General Bind Crash pos " + position + ": " + e.getMessage(), Toast.LENGTH_LONG).show();

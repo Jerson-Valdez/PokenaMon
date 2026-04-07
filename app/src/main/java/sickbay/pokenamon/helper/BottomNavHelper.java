@@ -7,6 +7,8 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.core.Battle;
+import sickbay.pokenamon.core.Collection;
 import sickbay.pokenamon.core.Gacha;
 import sickbay.pokenamon.core.Home;
 
@@ -29,6 +31,10 @@ public class BottomNavHelper {
             navHome.setBackgroundResource(R.drawable.rect);
         } else if (activity instanceof Gacha) {
             navSummon.setBackgroundResource(R.drawable.rect);
+        } else if (activity instanceof Collection) {
+            navCollection.setBackgroundResource(R.drawable.rect);
+        } else if (activity instanceof Battle) {
+            navBattle.setBackgroundResource(R.drawable.rect);
         }
         navHome.setOnClickListener(v -> {
             if (!(activity instanceof Home)) {
@@ -42,6 +48,15 @@ public class BottomNavHelper {
         navSummon.setOnClickListener(v -> {
             if (!(activity instanceof Gacha)) {
                 Intent intent = new Intent(activity, Gacha.class);
+                activity.startActivity(intent);
+                activity.overridePendingTransition(0, 0);
+                activity.finish();
+            }
+        });
+
+        navCollection.setOnClickListener(v -> {
+            if (!(activity instanceof Collection)) {
+                Intent intent = new Intent(activity, Collection.class);
                 activity.startActivity(intent);
                 activity.overridePendingTransition(0, 0);
                 activity.finish();

@@ -144,6 +144,13 @@ public class Gacha extends AppCompatActivity {
                 });
     }
 
+    private void updatePokemonCount(int amount) {
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
+
+        userRef.child("pokemon_count").setValue(com.google.firebase.database.ServerValue.increment(amount));
+    }
+
     private void savePokemonToInventory(List<Pokemon> newPokemonList) {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference inventoryRef = FirebaseDatabase.getInstance().getReference("user_inventory").child(uid);
@@ -343,6 +350,7 @@ public class Gacha extends AppCompatActivity {
                 recyclerViewGacha.setAdapter(adapter);
 
                 savePokemonToInventory(pulledPokemonList);
+                updatePokemonCount(maxPulls);
             }
         });
     }
