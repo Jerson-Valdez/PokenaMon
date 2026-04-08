@@ -1,5 +1,6 @@
 package sickbay.pokenamon.auth;
 
+import android.app.ProgressDialog; // Added for loading
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,6 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException; // Added for specific error
+import com.google.firebase.auth.FirebaseAuthInvalidUserException; // Added for specific error
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,6 +33,7 @@ public class Login extends AppCompatActivity {
     Button login;
     TextView goToRegister;
     FirebaseAuth auth;
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +43,10 @@ public class Login extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
 
+        // Initialize ProgressDialog
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Logging in...");
+        progressDialog.setCancelable(false);
         init();
         action();
     }
@@ -63,6 +71,10 @@ public class Login extends AppCompatActivity {
             if (txtEmail.isEmpty() || txtPassword.isEmpty()) {
                 Toast.makeText(context, "Please enter your credentials", Toast.LENGTH_SHORT).show();
             } else {
+                login.setEnabled(false);
+
+                progressDialog.show();
+
                 loginUser(txtEmail, txtPassword);
             }
         });
@@ -74,7 +86,15 @@ public class Login extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         fetchUserProfile(auth.getCurrentUser().getUid(), email, password);
                     } else {
-                        Toast.makeText(context, "Login Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        progressDialog.dismiss();
+                        login.setEnabled(true);
+
+                        if (task.getException() instanceof FirebaseAuthInvalidCredentialsException ||
+                                task.getException() instanceof FirebaseAuthInvalidUserException) {
+                            Toast.makeText(context, "Invalid email or password.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(context, "Login Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
     }
@@ -85,12 +105,13 @@ public class Login extends AppCompatActivity {
         db.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                progressDialog.dismiss();
+
                 if (snapshot.exists()) {
                     User user = snapshot.getValue(User.class);
 
                     if (user != null) {
                         UserManager.getInstance().setUser(user);
-
                         new Auth(context).setRememberMe(email, password);
 
                         Toast.makeText(context, "Welcome back, " + user.username + "!", Toast.LENGTH_SHORT).show();
@@ -99,11 +120,15 @@ public class Login extends AppCompatActivity {
                         startActivity(intent);
                         finish();
                     }
+                } else {
+                    login.setEnabled(true);
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
+                progressDialog.dismiss();
+                login.setEnabled(true);
                 Toast.makeText(context, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

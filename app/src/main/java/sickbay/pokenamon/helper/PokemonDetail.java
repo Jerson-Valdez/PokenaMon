@@ -182,7 +182,7 @@ public class PokemonDetail extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     UserManager.getInstance().getUser().selectedPokemonId = String.valueOf(pokemon.getTimestamp());
                     Toast.makeText(this, pokemon.getName() + " selected for Battle!", Toast.LENGTH_SHORT).show();
-                    finish();
+                    setButton();
                 });
     }
 

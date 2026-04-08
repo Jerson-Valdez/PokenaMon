@@ -1,5 +1,6 @@
 package sickbay.pokenamon.auth;
 
+import android.app.ProgressDialog; // Added for loading
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,12 +13,12 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException; // Added for shorter toast
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.controller.UserManager;
-import sickbay.pokenamon.core.Gacha;
 import sickbay.pokenamon.core.Home;
 import sickbay.pokenamon.model.User;
 
@@ -26,12 +27,18 @@ public class Register extends AppCompatActivity {
     EditText email, username, password, confirmPassword;
     Button signUp;
     TextView alreadyHaveAccount;
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.layout_register);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Creating your trainer profile...");
+        progressDialog.setCancelable(false);
+
         init();
         action();
     }
@@ -53,22 +60,25 @@ public class Register extends AppCompatActivity {
         });
 
         signUp.setOnClickListener(v -> {
-            if(email.getText().toString().isEmpty() ||
-                    username.getText().toString().isEmpty() ||
-                    password.getText().toString().isEmpty() ||
-                    confirmPassword.getText().toString().isEmpty()){
+            String txtEmail = email.getText().toString().trim();
+            String txtUsername = username.getText().toString().trim();
+            String txtPassword = password.getText().toString().trim();
+            String txtConfirm = confirmPassword.getText().toString().trim();
+
+            if(txtEmail.isEmpty() || txtUsername.isEmpty() || txtPassword.isEmpty() || txtConfirm.isEmpty()){
                 Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-            }else{
-                if(password.getText().toString().length() < 6){
-                    Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
-                } else if (password.getText().toString().equals(confirmPassword.getText().toString())) {
-                    registerUser(email.getText().toString(), password.getText().toString(), username.getText().toString());
-                } else {
-                    Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show();
-                    }
-                }
+            } else if(txtPassword.length() < 6){
+                Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+            } else if (!txtPassword.equals(txtConfirm)) {
+                Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            } else {
+                signUp.setEnabled(false);
+
+                progressDialog.show();
+
+                registerUser(txtEmail, txtPassword, txtUsername);
             }
-        );
+        });
     }
 
     private void registerUser(String email, String password, String username) {
@@ -83,6 +93,8 @@ public class Register extends AppCompatActivity {
 
                         db.child("users").child(userId).setValue(newUser)
                                 .addOnCompleteListener(dbTask -> {
+                                    progressDialog.dismiss();
+
                                     if (dbTask.isSuccessful()) {
                                         UserManager.getInstance().setUser(newUser);
                                         new Auth(context).setRememberMe(email, password);
@@ -90,10 +102,20 @@ public class Register extends AppCompatActivity {
                                         Intent intent = new Intent(Register.this, Home.class);
                                         startActivity(intent);
                                         finish();
+                                    } else {
+                                        signUp.setEnabled(true);
+                                        Toast.makeText(context, "Database Error", Toast.LENGTH_SHORT).show();
                                     }
                                 });
                     } else {
-                        Toast.makeText(context, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        progressDialog.dismiss();
+                        signUp.setEnabled(true);
+
+                        if (task.getException() instanceof FirebaseAuthUserCollisionException) {
+                            Toast.makeText(context, "Email is already registered.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(context, "Registration Failed.", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
     }
