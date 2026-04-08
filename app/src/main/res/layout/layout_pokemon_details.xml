@@ -14,9 +14,20 @@
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
         android:paddingTop="50dp"
-        android:paddingBottom="100dp">
+        android:paddingBottom="120dp">
+
+        <Button
+            android:id="@+id/back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:background="@drawable/rectangle"
+            android:textSize="20sp"
+            android:textAllCaps="false"
+            android:textStyle="bold"/>
 
         <include
+            android:id="@+id/pokemonCard"
             layout="@layout/pokemon_card"/>
 
         <TextView
@@ -30,7 +41,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:orientation="horizontal"
             android:background="@drawable/rectangle"
             android:padding="20dp"
@@ -46,7 +58,8 @@
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:gravity="center"
-                android:layout_marginRight="5dp"/>
+                android:layout_marginRight="5dp"
+                android:layout_gravity="center"/>
 
             <TextView
                 android:id="@+id/move1pwr"
@@ -65,7 +78,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:orientation="horizontal"
             android:background="@drawable/rectangle"
             android:padding="20dp"
@@ -81,7 +95,8 @@
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:gravity="center"
-                android:layout_marginRight="5dp"/>
+                android:layout_marginRight="5dp"
+                android:layout_gravity="center"/>
 
             <TextView
                 android:id="@+id/move2pwr"
@@ -100,7 +115,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:orientation="horizontal"
             android:background="@drawable/rectangle"
             android:padding="20dp"
@@ -116,7 +132,8 @@
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:gravity="center"
-                android:layout_marginRight="5dp"/>
+                android:layout_marginRight="5dp"
+                android:layout_gravity="center"/>
 
             <TextView
                 android:id="@+id/move3pwr"
@@ -135,7 +152,8 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:orientation="horizontal"
             android:background="@drawable/rectangle"
             android:padding="20dp"
@@ -151,7 +169,8 @@
                 android:textStyle="bold"
                 android:textSize="20sp"
                 android:gravity="center"
-                android:layout_marginRight="5dp"/>
+                android:layout_marginRight="5dp"
+                android:layout_gravity="center"/>
 
             <TextView
                 android:id="@+id/move4pwr"
@@ -170,14 +189,14 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="20dp">
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/sell"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Sell"
                 android:textSize="20sp"
@@ -192,7 +211,7 @@
             <Button
                 android:id="@+id/select"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Select"
                 android:textSize="20sp"

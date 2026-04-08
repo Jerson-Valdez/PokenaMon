@@ -59,7 +59,9 @@ public class Register extends AppCompatActivity {
                     confirmPassword.getText().toString().isEmpty()){
                 Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             }else{
-                if (password.getText().toString().equals(confirmPassword.getText().toString())) {
+                if(password.getText().toString().length() < 6){
+                    Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+                } else if (password.getText().toString().equals(confirmPassword.getText().toString())) {
                     registerUser(email.getText().toString(), password.getText().toString(), username.getText().toString());
                 } else {
                     Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show();
