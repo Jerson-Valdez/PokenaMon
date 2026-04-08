@@ -140,7 +140,7 @@ public class Collection extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     String name = snapshot.child("username").getValue(String.class);
-                    Object count = snapshot.child("pokemon_count").getValue();
+                    Object count = snapshot.child("pokemonCount").getValue();
                     Object wins = snapshot.child("wins").getValue();
 
                     if (name != null && !name.isEmpty()) {

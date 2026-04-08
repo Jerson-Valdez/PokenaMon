@@ -148,7 +148,7 @@ public class Gacha extends AppCompatActivity {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
 
-        userRef.child("pokemon_count").setValue(com.google.firebase.database.ServerValue.increment(amount));
+        userRef.child("pokemonCount").setValue(com.google.firebase.database.ServerValue.increment(amount));
     }
 
     private void savePokemonToInventory(List<Pokemon> newPokemonList) {

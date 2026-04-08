@@ -5,8 +5,8 @@ public class User {
     public String email;
     public int coins;
     public int wins;
-    public int pokemon_count;
-
+    public int pokemonCount;
+    public String selectedPokemonId;
     public User() {}
 
     public User(String username, String email) {
@@ -14,6 +14,7 @@ public class User {
         this.email = email;
         this.coins = 1000;
         this.wins = 0;
-        this.pokemon_count = 0;
+        this.pokemonCount = 0;
+        this.selectedPokemonId = "";
     }
 }
