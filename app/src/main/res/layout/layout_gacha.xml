@@ -82,7 +82,7 @@
             android:id="@+id/pokeball"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="5"
             android:src="@mipmap/ic_launcher_foreground"
             android:scaleX="1.5"
             android:scaleY="1.5"
@@ -92,7 +92,7 @@
             android:id="@+id/recyclerViewGacha"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_weight="5"
             android:clipToPadding="false"
             android:visibility="gone" />
 
@@ -115,7 +115,8 @@
         <Button
             android:id="@+id/draw10x"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:text="Draw 10x - 900 coins"
             android:textStyle="bold"
             android:textColor="@color/text"
@@ -129,7 +130,8 @@
         <Button
             android:id="@+id/draw1x"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:text="Draw 1x - 100 coins"
             android:textSize="20sp"
             android:layout_marginTop="10dp"
