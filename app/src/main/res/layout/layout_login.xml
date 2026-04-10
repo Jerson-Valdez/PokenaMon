@@ -39,7 +39,8 @@
         android:textSize="16sp"
         android:inputType="textEmailAddress"
         android:hint="Email Address"
-        android:textColor="@color/textVariant"
+        android:textColorHint="@color/textVariant"
+        android:textColor="@color/text"
         app:backgroundTint="@null"/>
 
     <TextView
@@ -62,7 +63,8 @@
         android:layout_marginTop="7dp"
         android:inputType="textPassword"
         android:hint="Password"
-        android:textColor="@color/textVariant"
+        android:textColorHint="@color/textVariant"
+        android:textColor="@color/text"
         app:backgroundTint="@null"/>
 
     <Space

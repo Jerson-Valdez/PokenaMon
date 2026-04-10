@@ -1,64 +1,170 @@
 package sickbay.pokenamon.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-public class Pokemon implements Serializable {
-    private int id;
+import sickbay.pokenamon.db.dto.PokemonDTO;
+import sickbay.pokenamon.system.arena.enums.Type;
+import sickbay.pokenamon.system.arena.model.PokemonSprite;
+import sickbay.pokenamon.system.arena.model.PokemonStat;
+import sickbay.pokenamon.system.arena.enums.StatId;
+
+public class Pokemon {
+    private String collectionId;
+    private int pokedexId;
     private String name;
-    private List<String> types;
+    private int rarity;
     private int level;
-    private int stars;
-    private List<String> moves;
-    private List<Integer> movePower;
-    private String imageUrl;
-    private String userId;
-    private long captureAt;
+    private int exp;
+    private Type[] types;
+    private PokemonSprite sprite;
+    private String cry;
+    private double weight;
+    private double height;
+    private HashMap<StatId, PokemonStat> stats;
+    private String[] moves;
 
-    public Pokemon() {}
-
-    public Pokemon(int id, String name, List<String> types, int stars, List<String> moves, List<Integer> movePower, String imageUrl, String userId, long captureAt) {
-        this.id = id;
+    public Pokemon(int pokedexId, String name, int level, int exp, Type[] types, PokemonSprite sprite, String cry, double weight, double height, HashMap<StatId, PokemonStat> stats, String[] moves) {
+        this.pokedexId = pokedexId;
         this.name = name;
+        this.level = level;
+        this.exp = exp;
         this.types = types;
-        this.stars = stars;
+        this.sprite = sprite;
+        this.cry = cry;
+        this.weight = weight;
+        this.height = height;
+        this.stats = stats;
         this.moves = moves;
-        this.movePower = movePower;
-        this.imageUrl = imageUrl;
-        this.userId = userId;
-        this.level = 1;
-        this.captureAt = captureAt;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public Pokemon(int pokedexId, String name, int rarity, int level, int exp, Type[] types, PokemonSprite sprite, String cry, double weight, HashMap<StatId, PokemonStat> stats, String[] moves) {
+        this.pokedexId = pokedexId;
+        this.name = name;
+        this.rarity = rarity;
+        this.level = level;
+        this.exp = exp;
+        this.types = types;
+        this.sprite = sprite;
+        this.cry = cry;
+        this.weight = weight;
+        this.stats = stats;
+        this.moves = moves;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getCollectionId() { return collectionId; }
 
-    public List<String> getTypes() { return types; }
-    public void setTypes(List<String> types) { this.types = types; }
+    public void setCollectionId(String collectionId) { this.collectionId = collectionId; }
 
-    public int getLevel() { return level; }
-    public void setLevel(int level) { this.level = level; }
+    public int getPokedexId() {
+        return pokedexId;
+    }
 
-    public int getStars() { return stars; }
-    public void setStars(int stars) { this.stars = stars; }
+    public void setPokedexId(int pokedexId) {
+        this.pokedexId = pokedexId;
+    }
 
-    public List<String> getMoves() { return moves; }
-    public void setMoves(List<String> moves) { this.moves = moves; }
+    public String getName() {
+        return name;
+    }
 
-    public List<Integer> getMovePower() { return movePower; }
-    public void setMovePower(List<Integer> movePower) { this.movePower = movePower; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public int getRarity() {
+        return rarity;
+    }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public void setRarity(int rarity) {
+        this.rarity = rarity;
+    }
 
-    public long getTimestamp() { return captureAt; }
-    public void setTimestamp(long captureAt) { this.captureAt = captureAt; }
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public int getExp() {
+        return exp;
+    }
+
+    public void setExp(int exp) {
+        this.exp = exp;
+    }
+
+    public Type[] getTypes() {
+        return types;
+    }
+
+    public void setTypes(Type[] types) {
+        this.types = types;
+    }
+
+    public PokemonSprite getSprite() {
+        return sprite;
+    }
+
+    public void setSprite(PokemonSprite sprite) {
+        this.sprite = sprite;
+    }
+
+    public String getCry() {
+        return cry;
+    }
+
+    public void setCry(String cry) {
+        this.cry = cry;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+
+    public double getHeight() {
+        return height;
+    }
+
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+
+    public HashMap<StatId, PokemonStat> getStats() {
+        return stats;
+    }
+
+    public void setStats(HashMap<StatId, PokemonStat> stats) {
+        this.stats = stats;
+    }
+
+    public String[] getMoves() {
+        return moves;
+    }
+
+    public void setMoves(String[] moves) {
+        this.moves = moves;
+    }
+
+    public PokemonDTO toPokemonDTO() {
+        ArrayList<String> types = Arrays.stream(this.types).map(t -> t.name().toLowerCase()).collect(Collectors.toCollection(ArrayList::new));
+
+        HashMap<String, Integer> stats = new HashMap<>();
+        for (Map.Entry<StatId, PokemonStat> stat: this.stats.entrySet()) {
+            stats.put(stat.getKey().name(), stat.getValue().getBattleStat());
+        }
+
+        return new PokemonDTO(pokedexId, name, rarity, level, exp, weight, height, types, sprite, cry, stats, new ArrayList<>(Arrays.asList(moves)));
+    }
 }

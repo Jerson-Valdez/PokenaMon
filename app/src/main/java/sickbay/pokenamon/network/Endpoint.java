@@ -1,0 +1,5 @@
+package sickbay.pokenamon.network;
+
+public enum Endpoint {
+    POKEMON, GROWTH_RATE, MOVE, MOVE_CATEGORY, MOVE_AILMENT, MOVE_DAMAGE_CLASS, BACK, BACK_FALLBACK, FRONT, FRONT_FALLBACK
+}

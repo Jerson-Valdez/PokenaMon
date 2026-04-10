@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:app="http://schemas.android.com/apk/res-auto"
-xmlns:tools="http://schemas.android.com/tools"
-android:id="@+id/main"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-android:background="@color/background"
-tools:context=".core.Collection">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".core.Collection">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,14 +14,14 @@ tools:context=".core.Collection">
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
         android:paddingTop="50dp"
-        android:paddingBottom="110dp">
+        android:paddingBottom="100dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp"
-            android:layout_marginTop="10dp"
+            android:padding="10dp"
+            android:layout_marginVertical="8dp"
             android:background="@drawable/rect2">
 
             <LinearLayout
@@ -51,20 +51,6 @@ tools:context=".core.Collection">
                     android:textSize="20sp"
                     android:gravity="left|center"
                     android:layout_marginLeft="10dp"/>
-
-                <Button
-                    android:id="@+id/logout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="Logout"
-                    android:textSize="16sp"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary"
-                    android:background="@drawable/rect3"
-                    android:textStyle="bold"
-                    app:backgroundTint="@null"
-                    android:layout_gravity="right"/>
-
             </LinearLayout>
 
             <LinearLayout
@@ -80,7 +66,36 @@ tools:context=".core.Collection">
                     android:background="@drawable/rectangle"
                     android:orientation="vertical"
                     android:padding="18dp"
-                    android:layout_marginRight="10dp">
+                    android:layout_marginRight="8dp">
+
+                    <TextView
+                        android:id="@+id/streak"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="1"
+                        android:textStyle="bold"
+                        android:textColor="@color/text"
+                        android:textSize="20sp"
+                        android:gravity="center"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Daily Streak"
+                        android:textColor="@color/textVariant"
+                        android:textSize="12sp"
+                        android:gravity="center"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/rectangle"
+                    android:orientation="vertical"
+                    android:padding="18dp"
+                    android:layout_marginRight="8dp">
 
                     <TextView
                         android:id="@+id/pokemon_count"
@@ -95,7 +110,7 @@ tools:context=".core.Collection">
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Pokemon Caught"
+                        android:text="Total 'Mons"
                         android:textColor="@color/textVariant"
                         android:textSize="12sp"
                         android:gravity="center"/>
@@ -137,45 +152,107 @@ tools:context=".core.Collection">
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginVertical="10dp">
+            android:layout_marginVertical="8dp">
 
-            <Spinner
-                android:id="@+id/lvlSpnr"
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
                 android:layout_weight="1"
-                android:background="@drawable/rectangle"
+                android:layout_marginRight="8dp"
+                >
+                <CheckBox
+                    android:id="@+id/sortByAlphabet"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:button="@null"
+                    android:background="@drawable/rectangle"
+                    android:padding="12dp"
+                    android:text="Name: ↑"
+                    android:textAllCaps="false"
+                    android:textStyle="bold"
+                    android:textColor="@color/textVariant"
+                    android:textAlignment="center"
+                    />
+            </LinearLayout>
 
-                android:backgroundTint="@color/secondary"
-
-                android:padding="18dp"
-                android:textAlignment="center"
-                android:entries="@array/lvl"
-                android:layout_marginRight="10dp"/>
-
-            <Spinner
-                android:id="@+id/raritySpnr"
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
                 android:layout_weight="1"
-                android:background="@drawable/rectangle"
+                android:layout_marginRight="8dp"
+                >
+                <CheckBox
+                    android:id="@+id/sortByLevel"                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:button="@null"
+                    android:background="@drawable/rectangle"
+                    android:padding="12dp"
+                    android:text="Level: ↑"
+                    android:textAllCaps="false"
+                    android:textStyle="bold"
+                    android:textColor="@color/textVariant"
+                    android:textAlignment="center"
+                    />
+            </LinearLayout>
 
-                android:backgroundTint="@color/secondary"
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_weight="1"
 
-                android:padding="18dp"
-                android:textAlignment="center"
-                android:entries="@array/rarity"/>
+                android:layout_marginRight="8dp"
+                >
+                <CheckBox
+                    android:id="@+id/sortByRarity"                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:button="@null"
+                    android:background="@drawable/rectangle"
+                    android:padding="12dp"
+                    android:text="Rarity: ↑"
+                    android:textAllCaps="false"
+                    android:textStyle="bold"
+                    android:textColor="@color/textVariant"
+                    android:textAlignment="center"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_weight="1"
+                >
+                <CheckBox
+                    android:gravity="center"
+                    android:id="@+id/sortByDate"                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:button="@null"
+                    android:background="@drawable/rectangle"
+                    android:padding="12dp"
+                    android:text="Date: ↑"
+                    android:textAllCaps="false"
+                    android:textStyle="bold"
+                    android:textColor="@color/textVariant"
+                    android:textAlignment="center"
+                    />
+            </LinearLayout>
 
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewCollection"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:nestedScrollingEnabled="false" />
-
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:nestedScrollingEnabled="false"
+            android:layout_marginVertical="8dp"/>
     </LinearLayout>
 
-<include layout="@layout/navbar" />
-
+    <include layout="@layout/navbar" />
 </RelativeLayout>

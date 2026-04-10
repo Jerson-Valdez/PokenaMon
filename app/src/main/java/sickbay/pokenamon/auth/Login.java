@@ -1,9 +1,9 @@
 package sickbay.pokenamon.auth;
 
-import android.app.ProgressDialog; // Added for loading
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -12,20 +12,19 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ProcessLifecycleOwner;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException; // Added for specific error
-import com.google.firebase.auth.FirebaseAuthInvalidUserException; // Added for specific error
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import sickbay.pokenamon.R;
-import sickbay.pokenamon.controller.UserManager;
+import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.core.Home;
+import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.model.User;
+import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
 
 public class Login extends AppCompatActivity {
     Context context = this;
@@ -33,7 +32,6 @@ public class Login extends AppCompatActivity {
     Button login;
     TextView goToRegister;
     FirebaseAuth auth;
-    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,12 +39,11 @@ public class Login extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.layout_login);
 
+        ProcessLifecycleOwner.get().getLifecycle().addObserver(BackgroundMusicManager.getInstance(getApplicationContext()));
+        BackgroundMusicManager.getInstance(this).pause();
+
         auth = FirebaseAuth.getInstance();
 
-        // Initialize ProgressDialog
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Logging in...");
-        progressDialog.setCancelable(false);
         init();
         action();
     }
@@ -60,77 +57,64 @@ public class Login extends AppCompatActivity {
 
     private void action() {
         goToRegister.setOnClickListener(v -> {
-            startActivity(new Intent(Login.this, Register.class));
+            startActivity(new Intent(this, Register.class));
             finish();
         });
 
         login.setOnClickListener(v -> {
-            String txtEmail = email.getText().toString().trim();
-            String txtPassword = password.getText().toString().trim();
+            String emailValue = email.getText().toString().trim();
+            String passwordValue = password.getText().toString().trim();
 
-            if (txtEmail.isEmpty() || txtPassword.isEmpty()) {
-                Toast.makeText(context, "Please enter your credentials", Toast.LENGTH_SHORT).show();
-            } else {
-                login.setEnabled(false);
-
-                progressDialog.show();
-
-                loginUser(txtEmail, txtPassword);
+            if (emailValue.isEmpty() || passwordValue.isEmpty()) {
+                Toast.makeText(context, "Please enter your credentials!", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            loginUser(emailValue, passwordValue);
         });
     }
 
     private void loginUser(String email, String password) {
-        auth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        fetchUserProfile(auth.getCurrentUser().getUid(), email, password);
-                    } else {
-                        progressDialog.dismiss();
-                        login.setEnabled(true);
+        login.setEnabled(false);
 
-                        if (task.getException() instanceof FirebaseAuthInvalidCredentialsException ||
-                                task.getException() instanceof FirebaseAuthInvalidUserException) {
-                            Toast.makeText(context, "Invalid email or password.", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(context, "Login Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                        }
+        DB db = DB.getAuthInstance(this);
+        db.signInAuthUser(email, password,
+                (task) -> {
+                    if (task.isSuccessful()) {
+                        login.setEnabled(true);
+                        fetchUserProfile(db.getAuthUser().getUid());
                     }
+                },
+                (error) -> {
+                    login.setEnabled(true);
+                    Log.e("Login", error.getMessage(), error);
+                    Toast.makeText(context, "Please log in to a valid account!", Toast.LENGTH_SHORT).show();
                 });
     }
 
-    private void fetchUserProfile(String userId, String email, String password) {
-        DatabaseReference db = FirebaseDatabase.getInstance().getReference("users").child(userId);
+    private void fetchUserProfile(String uid) {
+        DB.getDatabaseInstance().getUserReference(uid)
+            .addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            User user = snapshot.getValue(User.class);
+                            user.setUid(uid);
 
-        db.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                progressDialog.dismiss();
+                            UserManager.getInstance().setUser(user);
 
-                if (snapshot.exists()) {
-                    User user = snapshot.getValue(User.class);
-
-                    if (user != null) {
-                        UserManager.getInstance().setUser(user);
-                        new Auth(context).setRememberMe(email, password);
-
-                        Toast.makeText(context, "Welcome back, " + user.username + "!", Toast.LENGTH_SHORT).show();
-
-                        Intent intent = new Intent(Login.this, Home.class);
-                        startActivity(intent);
-                        finish();
+                            Toast.makeText(context, "Welcome back, " + user.getUsername() + "!", Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(Login.this, Home.class));
+                            finish();
+                        }
                     }
-                } else {
-                    login.setEnabled(true);
-                }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                progressDialog.dismiss();
-                login.setEnabled(true);
-                Toast.makeText(context, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("Login", error.getMessage(), error.toException());
+                        Toast.makeText(context, "Sorry! We couldn't log you in..", Toast.LENGTH_SHORT).show();
+                    }
+            });
     }
 }

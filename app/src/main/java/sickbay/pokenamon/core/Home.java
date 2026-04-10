@@ -4,21 +4,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.bumptech.glide.Glide;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
@@ -27,47 +25,68 @@ import java.util.Collections;
 import java.util.List;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.auth.Login;
+import sickbay.pokenamon.db.DB;
+import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.helper.BottomNavHelper;
-import sickbay.pokenamon.controller.PokemonAdapter;
-import sickbay.pokenamon.controller.UserManager;
-import sickbay.pokenamon.model.Pokemon;
+import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.model.User;
+import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
+import sickbay.pokenamon.system.home.HorizontalSpacingItemDecoration;
+import sickbay.pokenamon.system.home.PokemonListAdapter;
+import sickbay.pokenamon.util.Localizer;
 
 public class Home extends AppCompatActivity {
-
-    TextView txtUsername, txtCoins;
+    ImageView lastBattledPokemon;
+    TextView txtUsername, lastBattledPokemonName, noRecentSummonsDisplay;
     RecyclerView recyclerViewRecent;
-    Button startBattle, changePokemon;
-
-    PokemonAdapter adapter;
-    List<Pokemon> recentPokemonList;
-
-    FirebaseAuth auth;
-    FirebaseDatabase database;
+    Button startBattle, changePokemon, btnLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_home);
-        auth = FirebaseAuth.getInstance();
-        database = FirebaseDatabase.getInstance();
+
+        BackgroundMusicManager.getInstance(this).play(R.raw.home_theme);
 
         init();
-        fetchUserData();
-        fetchRecentCaptures();
+        fetchUser();
+
+        fetchUserRecentSummons();
+    }
+
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        fetchUserRecentSummons();
     }
 
     private void init() {
         startBattle = findViewById(R.id.startBattle);
+        lastBattledPokemon = findViewById(R.id.lastBattledPokemonSprite);
         changePokemon = findViewById(R.id.changePokemon);
         txtUsername = findViewById(R.id.homeUsername);
-        txtCoins = findViewById(R.id.homeCoins);
+        lastBattledPokemonName = findViewById(R.id.lastBattledPokemonName);
+        noRecentSummonsDisplay = findViewById(R.id.noRecentDisplay);
         recyclerViewRecent = findViewById(R.id.recyclerViewRecent);
+        btnLogout = findViewById(R.id.logout);
 
-        recyclerViewRecent.setLayoutManager(new GridLayoutManager(this, 2));
+        recyclerViewRecent.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        recyclerViewRecent.addItemDecoration(new HorizontalSpacingItemDecoration(16));
 
         LinearLayout btnSummon = findViewById(R.id.btnQuickSummon);
         LinearLayout btnCollection = findViewById(R.id.btnQuickCollection);
+
+        btnLogout.setOnClickListener(v -> {
+            Intent intent = new Intent(this, Login.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+            DB.getAuthInstance(this).signOutAuthUser();
+            startActivity(intent);
+            finish();
+        });
 
         btnSummon.setOnClickListener(v -> {
             startActivity(new Intent(this, Gacha.class));
@@ -78,84 +97,78 @@ public class Home extends AppCompatActivity {
         btnCollection.setOnClickListener(v -> {
             startActivity(new Intent(this, Collection.class));
             overridePendingTransition(0, 0);
-            finish();
-        });
-
-        changePokemon.setOnClickListener(v -> {
-            startActivity(new Intent(this, Collection.class));
-            overridePendingTransition(0, 0);
-            finish();
         });
 
         BottomNavHelper.setup(this);
     }
 
-    private void fetchUserData() {
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) return;
+    private void fetchUser() {
+        if (UserManager.getInstance().getUser() == null) {
+            String uid = DB.getAuthInstance(this).getAuthUser().getUid();
+            DB.getDatabaseInstance().getUserReference(uid)
+                    .addListenerForSingleValueEvent(
+                            new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (snapshot.exists()) {
+                                        User user = snapshot.getValue(User.class);
+                                        user.setUid(uid);
 
-        String uid = currentUser.getUid();
-        DatabaseReference userRef = database.getReference("users").child(uid);
+                                        UserManager.getInstance().setUser(user);
+                                    }
+                                }
 
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    String username = snapshot.child("username").getValue(String.class);
-                    Integer coins = snapshot.child("coins").getValue(Integer.class);
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Log.e("Login", error.getMessage(), error.toException());
+                                }
+                            });
 
-                    if (username != null) txtUsername.setText(username);
-                    if (coins != null) txtCoins.setText(String.format("%,d", coins));
+            return;
+        }
 
-                    if (UserManager.getInstance().getUser() != null) {
-                        UserManager.getInstance().getUser().coins = (coins != null) ? coins : 0;
-                    }
-                }
-            }
+        String username = UserManager.getInstance().getUser().getUsername();
+        PokemonDTO pokemon = UserManager.getInstance().getUser().getLastBattledPokemon();
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("HomeBackend", "Failed to fetch user data: " + error.getMessage());
-            }
-        });
+        txtUsername.setText(Localizer.toTitleCase(username));
+
+        if (pokemon != null) {
+            lastBattledPokemonName.setText(pokemon.getName());
+            Glide.with(this)
+                    .load(pokemon.getSprite().getFrontFallback())
+                    .into(lastBattledPokemon);
+        }
     }
 
-    private void fetchRecentCaptures() {
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) return;
+    private void fetchUserRecentSummons() {
+        DatabaseReference inventory = DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid());
 
-        String uid = currentUser.getUid();
-        DatabaseReference inventoryRef = database.getReference("user_inventory").child(uid);
-
-        Query recentQuery = inventoryRef.orderByChild("timestamp").limitToLast(2);
-
-        recentQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                recentPokemonList = new ArrayList<>();
-
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    try {
-                        Pokemon p = child.getValue(Pokemon.class);
-                        if (p != null) {
-                            recentPokemonList.add(p);
-                        }
-                    } catch (Exception e) {
-                        Log.e("HomeBackend", "Failed to parse Pokemon: " + e.getMessage());
-                    }
+        inventory.get()
+            .addOnCompleteListener(this, task -> {
+                if (task.getResult().getChildrenCount() == 0) {
+                    recyclerViewRecent.setVisibility(RecyclerView.GONE);
+                    noRecentSummonsDisplay.setVisibility(RecyclerView.VISIBLE);
+                    return;
                 }
 
-                Collections.reverse(recentPokemonList);
+                Query recentPokemons = inventory.orderByChild("summonedAt").limitToLast(10);
+                recentPokemons.get()
+                        .addOnCompleteListener(this, childTask -> {
+                        if (childTask.isSuccessful()) {
+                            List<PokemonDTO> recentPokemonsList = new ArrayList<>();
 
-                adapter = new PokemonAdapter(recentPokemonList);
-                recyclerViewRecent.setAdapter(adapter);
-            }
+                            for (DataSnapshot child: childTask.getResult().getChildren()) {
+                                PokemonDTO pokemon = child.getValue(PokemonDTO.class);
+                                recentPokemonsList.add(pokemon);
+                            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("HomeBackend", "Failed to fetch inventory: " + error.getMessage());
-                Toast.makeText(Home.this, "Failed to load recent captures.", Toast.LENGTH_SHORT).show();
-            }
-        });
+                            Collections.reverse(recentPokemonsList);
+
+                            recyclerViewRecent.setAdapter(new PokemonListAdapter(this, recentPokemonsList));
+                        }
+                    })
+                    .addOnFailureListener(this, error -> Log.e("RecentSummons", error.getMessage(), error));
+            })
+            .addOnFailureListener(this, error -> Log.e("RecentSummons", error.getMessage(), error));
     }
 }
