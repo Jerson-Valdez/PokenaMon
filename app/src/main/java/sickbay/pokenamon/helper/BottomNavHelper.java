@@ -2,21 +2,20 @@ package sickbay.pokenamon.helper;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.widget.LinearLayout;
-import android.widget.Toast;
+import android.widget.ImageView;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.core.Collection;
 import sickbay.pokenamon.core.Gacha;
 import sickbay.pokenamon.core.Home;
 
 public class BottomNavHelper {
 
     public static void setup(Activity activity) {
-        LinearLayout navHome = activity.findViewById(R.id.nav_home);
-        LinearLayout navBattle = activity.findViewById(R.id.nav_battle);
-        LinearLayout navSummon = activity.findViewById(R.id.nav_summon);
-        LinearLayout navCollection = activity.findViewById(R.id.nav_collection);
+        ImageView navHome = activity.findViewById(R.id.nav_home);
+        ImageView navBattle = activity.findViewById(R.id.nav_battle);
+        ImageView navSummon = activity.findViewById(R.id.nav_summon);
+        ImageView navCollection = activity.findViewById(R.id.nav_collection);
 
         if (navHome == null) return;
 
@@ -29,7 +28,11 @@ public class BottomNavHelper {
             navHome.setBackgroundResource(R.drawable.rect);
         } else if (activity instanceof Gacha) {
             navSummon.setBackgroundResource(R.drawable.rect);
+        } else if (activity instanceof Collection) {
+            navCollection.setBackgroundResource(R.drawable.rect);
         }
+
+
         navHome.setOnClickListener(v -> {
             if (!(activity instanceof Home)) {
                 Intent intent = new Intent(activity, Home.class);
@@ -48,6 +51,13 @@ public class BottomNavHelper {
             }
         });
 
-        //other buttons
+        navCollection.setOnClickListener(v -> {
+            if (!(activity instanceof Collection)) {
+                Intent intent = new Intent(activity, Collection.class);
+                activity.startActivity(intent);
+                activity.overridePendingTransition(0, 0);
+                activity.finish();
+            }
+        });
     }
 }

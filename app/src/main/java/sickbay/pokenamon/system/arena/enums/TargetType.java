@@ -1,0 +1,19 @@
+package sickbay.pokenamon.system.arena.enums;
+
+public enum TargetType {
+    USER,
+    SELECTED_POKEMON,
+    ALL_OTHER_POKEMON,
+    ALL_OPPONENTS,
+    ENTIRE_FIELD,
+    OPPONENTS_FIELD,
+    USER_AND_ALLIES,
+    RANDOM_OPPONENT,
+    ALLY,
+    USERS_FIELD,
+    SPECIFIC_MOVE,
+    SELECTED_POKEMON_ME_FIRST,
+    ALL_POKEMON,
+    FAINTING_POKEMON,
+    USER_OR_ALLY
+}

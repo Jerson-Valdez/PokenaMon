@@ -8,7 +8,6 @@
     android:orientation="vertical"
     android:background="@color/background"
     tools:context=".auth.Register"
-    android:paddingVertical="50dp"
     android:paddingHorizontal="30dp">
 
     <ImageView
@@ -39,7 +38,8 @@
         android:textSize="16sp"
         android:inputType="textEmailAddress"
         android:hint="Email Address"
-        android:textColor="@color/textVariant"
+        android:textColorHint="@color/textVariant"
+        android:textColor="@color/text"
         app:backgroundTint="@null"/>
 
     <TextView
@@ -61,7 +61,8 @@
         android:layout_marginTop="7dp"
         android:textSize="16sp"
         android:hint="Username"
-        android:textColor="@color/textVariant"
+        android:textColorHint="@color/textVariant"
+        android:textColor="@color/text"
         app:backgroundTint="@null"/>
 
     <TextView
@@ -84,7 +85,8 @@
         android:layout_marginTop="7dp"
         android:inputType="textPassword"
         android:hint="Password"
-        android:textColor="@color/textVariant"
+        android:textColorHint="@color/textVariant"
+        android:textColor="@color/text"
         app:backgroundTint="@null"/>
 
     <TextView
@@ -107,12 +109,9 @@
         android:layout_marginTop="7dp"
         android:inputType="textPassword"
         android:hint="Confirm Password"
-        android:textColor="@color/textVariant"
+        android:textColorHint="@color/textVariant"
+        android:textColor="@color/text"
         app:backgroundTint="@null"/>
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="20dp"/>
 
     <TextView
         android:id="@+id/alreadyHaveAccount"
@@ -123,11 +122,8 @@
         android:textAllCaps="false"
         android:textColor="@color/primary"
         android:textSize="16sp"
+        android:layout_marginVertical="20dp"
         />
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="20dp"/>
 
     <Button
         android:id="@+id/signUp"

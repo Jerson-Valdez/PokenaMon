@@ -1,75 +1,79 @@
 package sickbay.pokenamon.core;
 
 import android.animation.ObjectAnimator;
-import android.app.ProgressDialog;
+import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import sickbay.pokenamon.R;
-import sickbay.pokenamon.controller.PokemonAdapter;
-import sickbay.pokenamon.controller.UserManager;
+import sickbay.pokenamon.system.home.UserManager;
+import sickbay.pokenamon.db.DB;
+import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.helper.BottomNavHelper;
 import sickbay.pokenamon.model.Pokemon;
 import sickbay.pokenamon.model.User;
+import sickbay.pokenamon.network.PokeAPIManager;
+import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
+import sickbay.pokenamon.system.gacha.FetchGachaListener;
+import sickbay.pokenamon.system.gacha.GetGachaPokemonListener;
 
 public class Gacha extends AppCompatActivity {
-    Button draw10x, draw1x;
+    private static final Random rand = new Random();
+    private final int DRAW_10X = 900;
+    private final int DRAW_1X = 100;
+    private ObjectAnimator shake;
+    LinearLayout draw10x, draw1x;
     ImageView pokeball;
-    RecyclerView recyclerViewGacha;
     TextView tvCoins;
-
     Context context = this;
-    int coins = 0;
-
-    int finishedPulls = 0;
-    int[] chosenRand;
-
-    List<Pokemon> pulledPokemonList;
-    PokemonAdapter adapter;
-
-    private final OkHttpClient client = new OkHttpClient();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.layout_gacha);
+
+        BackgroundMusicManager.getInstance(this).play(R.raw.gacha_theme);
+
         init();
         action();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (shake != null) {
+            shake.cancel();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        draw1x.setEnabled(true);
+        draw10x.setEnabled(true);
+        pokeball.setTranslationX(0);
+        tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins()));
     }
 
     private void init() {
@@ -78,272 +82,175 @@ public class Gacha extends AppCompatActivity {
         pokeball = findViewById(R.id.pokeball);
         tvCoins = findViewById(R.id.coins);
 
-        recyclerViewGacha = findViewById(R.id.recyclerViewGacha);
-        recyclerViewGacha.setLayoutManager(new GridLayoutManager(this, 2));
-
-        User currentUser = UserManager.getInstance().getUser();
-        if (currentUser != null) {
-            coins = currentUser.coins;
-        } else {
-            fetchCoinsFromDatabase();
-        }
-        if (coins != -1) tvCoins.setText(String.format("%,d", coins));
-
+        tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins()));
         BottomNavHelper.setup(this);
     }
 
     private void action() {
+
         draw10x.setOnClickListener(v -> {
-            if (coins >= 900) {
-                updateUserCoins(-900);
-                chosenRand = new int[10];
-                for (int i = 0; i < 10; i++) {
-                    chosenRand[i] = rand(1, 100);
-                }
-                animatePokeballAndFetch(10);
+            if (isFinishing() || isDestroyed()) return;
+
+            if (UserManager.getInstance().getUser().getCoins() >= DRAW_10X) {
+                gacha(10, DRAW_10X);
             } else {
                 Toast.makeText(context, "Not enough coins", Toast.LENGTH_SHORT).show();
             }
         });
 
         draw1x.setOnClickListener(v -> {
-            if (coins >= 100) {
-                updateUserCoins(-100);
-                chosenRand = new int[1];
-                chosenRand[0] = rand(1, 100);
-                animatePokeballAndFetch(1);
+            if (isFinishing() || isDestroyed()) return;
+
+            if (UserManager.getInstance().getUser().getCoins() >= DRAW_1X) {
+                gacha(1, DRAW_1X);
             } else {
                 Toast.makeText(context, "Not enough coins", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void updateUserCoins(int amountToChange) {
-        coins += amountToChange;
-        if (UserManager.getInstance().getUser() != null) {
-            UserManager.getInstance().getUser().coins = coins;
-        }
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        FirebaseDatabase.getInstance().getReference("users")
-                .child(uid).child("coins").setValue(coins);
-        if (coins != -1) tvCoins.setText(String.format("%,d", coins));
-    }
-
-    private void fetchCoinsFromDatabase() {
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        FirebaseDatabase.getInstance().getReference("users").child(uid).child("coins")
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            coins = Integer.parseInt(String.valueOf(snapshot.getValue()));
-                        }
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
-                });
-    }
-
-    private void savePokemonToInventory(List<Pokemon> newPokemonList) {
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference inventoryRef = FirebaseDatabase.getInstance().getReference("user_inventory").child(uid);
-        for (Pokemon p : newPokemonList) {
-            inventoryRef.push().setValue(p);
-        }
-        Toast.makeText(context, "Saved to your Collection!", Toast.LENGTH_SHORT).show();
-    }
-
-    private int rand(int min, int max) {
-        return (int) (Math.random() * (max - min + 1)) + min;
-    }
-
-    private void animatePokeballAndFetch(int pulls) {
-        if (recyclerViewGacha != null) {
-            recyclerViewGacha.setVisibility(View.GONE);
-        }
-        pokeball.setVisibility(View.VISIBLE);
-
+    private void gacha(int pulls, int price) {
         draw1x.setEnabled(false);
         draw10x.setEnabled(false);
 
-        ObjectAnimator shake = ObjectAnimator.ofFloat(pokeball, "translationX",
-                0f, 25f, -25f, 25f, -25f, 15f, -15f, 5f, -5f, 0f);
-        shake.setDuration(1200);
-        shake.start();
+        double[] chosenRand = new double[pulls];
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (isFinishing() || isDestroyed()) return;
+        UserManager.getInstance().updateCoins(-price)
+                .addOnCompleteListener(Gacha.this, (task) -> {
+                    if (task.isSuccessful()) {
+                        tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins()));
 
-            pokeball.setVisibility(View.GONE);
-            recyclerViewGacha.setVisibility(View.VISIBLE);
+                        for (int i = 0; i < chosenRand.length; i++) {
+                            chosenRand[i] = .1 + (101 - .1) * rand.nextDouble();
 
-            draw1x.setEnabled(true);
-            draw10x.setEnabled(true);
-            fetchGachaData(pulls);
+                        }
 
-        }, 1200);
+                        animatePokeballAndFetch(chosenRand, new FetchGachaListener() {
+                            @Override
+                            public void onComplete(ArrayList<PokemonDTO> results) {
+                                draw1x.setEnabled(true);
+                                draw10x.setEnabled(true);
+
+                                savePokemonToInventory(results);
+
+                                Bundle bundle = new Bundle();
+                                bundle.putParcelableArrayList("pulls", results);
+                                Intent intent = new Intent(Gacha.this, GachaPull.class);
+                                intent.putExtras(bundle);
+
+                                startActivity(intent);
+                            }
+
+                            @Override
+                            public void onError(String message) {
+                                draw1x.setEnabled(true);
+                                draw10x.setEnabled(true);
+
+                                UserManager.getInstance().updateCoins(price)
+                                        .addOnCompleteListener(Gacha.this, (childTask) -> tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins())))
+                                        .addOnFailureListener(Gacha.this, (error) -> {
+                                            Log.d("Gacha", error.getMessage(), error);
+                                            Toast.makeText(context, "Sorry! An error has occurred..", Toast.LENGTH_SHORT).show();
+                                        });
+                                Toast.makeText(context, "Sorry! An error has occurred..", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                })
+                .addOnFailureListener(Gacha.this, (error) -> {
+                    Log.d("Gacha", error.getMessage(), error);
+                    Toast.makeText(context, "Sorry! An error has occurred..", Toast.LENGTH_SHORT).show();
+                });
     }
 
-    private void fetchGachaData(int maxPulls) {
-        ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Summoning Pokémon from PokeAPI...");
-        progressDialog.setCancelable(false);
-        progressDialog.show();
+    private void savePokemonToInventory(ArrayList<PokemonDTO> summonedPokemon) {
+        String uid = UserManager.getInstance().getUser().getUid();
 
-        DatabaseReference db = FirebaseDatabase.getInstance().getReference("gacha_metadata");
-        pulledPokemonList = new ArrayList<>();
-        finishedPulls = 0;
+        long summonedAt = System.currentTimeMillis();
+        for (PokemonDTO pokemon: summonedPokemon) {
+            String id = DB.getDatabaseInstance().getUserInventoryReference(uid).push().getKey();
 
-        for (int i = 0; i < maxPulls; i++) {
-            int luck = chosenRand[i];
-            String tier = (luck <= 5) ? "legendary" : (luck <= 20) ? "ultra_rare" : (luck <= 50) ? "rare" : "common";
+            if (id != null) {
+                pokemon.setCollectionId(id);
+                pokemon.setSummonedAt(summonedAt);
+                DB.getDatabaseInstance().getUserInventoryReference(uid).child(id).setValue(pokemon);
+            }
+        }
 
-            db.child(tier).addListenerForSingleValueEvent(new ValueEventListener() {
+        UserManager.getInstance().updatePokemonCount(summonedPokemon.size());
+    }
+
+    private void animatePokeballAndFetch(double[] chosenRand, FetchGachaListener listener) {
+        if (shake != null) {
+            shake.removeAllListeners();
+            shake.cancel();
+        }
+
+        shake = ObjectAnimator.ofFloat(pokeball, "translationX", -20f, 20f);
+        shake.setDuration(150);
+        shake.setRepeatCount(ValueAnimator.INFINITE);
+        shake.setRepeatMode(ValueAnimator.REVERSE);
+        shake.start();
+
+        fetchGachaData(chosenRand, listener, System.currentTimeMillis());
+    }
+
+    private void fetchGachaData(double[] chosenRand, FetchGachaListener listener, long startTime) {
+        AtomicInteger req = new AtomicInteger(chosenRand.length);
+        ArrayList<PokemonDTO> summonedPokemon = new ArrayList<>();
+
+        for (double luck : chosenRand) {
+            String tier = (luck <= .5) ? "legendary" : (luck <= 8) ? "ultra_rare" : (luck <= 30) ? "rare" : "common";
+            DB.getDatabaseInstance().getGachaMetadataTierReference(tier).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        int randomPos = new Random().nextInt((int) snapshot.getChildrenCount());
-                        int currentPos = 0;
+                    int randomPos = new Random().nextInt((int) snapshot.getChildrenCount());
+                    int currentPos = 0;
 
-                        for (DataSnapshot child : snapshot.getChildren()) {
-                            if (currentPos == randomPos) {
+                    for (DataSnapshot child : snapshot.getChildren()) {
+                        if (currentPos == randomPos) {
+                            int pokemonId = Integer.parseInt(String.valueOf(child.child("id").getValue()));
+                            int pokemonRarity = Integer.parseInt(String.valueOf(child.child("stars").getValue()));
 
-                                Object idObj = child.child("id").getValue();
-                                Object starObj = child.child("stars").getValue();
+                            Log.i("PULLING", "About to fetch");
 
-                                int pId = (idObj != null) ? Integer.parseInt(String.valueOf(idObj)) : 129;
-                                int pStars = (starObj != null) ? Integer.parseInt(String.valueOf(starObj)) : 1;
+                            PokeAPIManager.getInstance(getApplicationContext()).getGachaPokemon(pokemonId, new GetGachaPokemonListener() {
+                                @Override
+                                public void onComplete(Pokemon pokemon) {
+                                    pokemon.setRarity(pokemonRarity);
+                                    summonedPokemon.add(pokemon.toPokemonDTO());
 
-                                fetchFromPokeApi(pId, pStars, maxPulls, progressDialog);
-                                break;
-                            }
-                            currentPos++;
+                                    if (req.decrementAndGet() == 0) {
+                                        long remainingTime = Math.max(0, System.currentTimeMillis() - startTime);
+
+                                        shake.cancel();
+                                        pokeball.setTranslationX(0);
+                                        pokeball.postDelayed(() -> listener.onComplete(summonedPokemon), remainingTime);
+                                    }
+                                }
+
+                                @Override
+                                public void onError(String message) {
+                                    shake.cancel();
+                                    pokeball.setTranslationX(0);
+                                    Log.e("Gacha", message);
+                                    Toast.makeText(Gacha.this, "Sorry! An error occurred..", Toast.LENGTH_SHORT).show();
+                                    listener.onError(message);
+                                }
+                            });
+                            break;
                         }
+                        currentPos++;
                     }
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
-                    progressDialog.dismiss();
-                    Log.e("Gacha", "Firebase Error: " + error.getMessage());
+                    Log.d("Gacha", error.getMessage(), error.toException());
+                    Toast.makeText(context, "Sorry! An error has occurred..", Toast.LENGTH_SHORT).show();
+                    listener.onError(error.getMessage());
                 }
             });
         }
-    }
-
-    private void fetchFromPokeApi(int id, int stars, int maxPulls, ProgressDialog dialog) {
-        String url = "https://pokeapi.co/api/v2/pokemon/" + id;
-        Request request = new Request.Builder().url(url).build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (response.isSuccessful() && response.body() != null) {
-                    try {
-                        JSONObject jsonObject = new JSONObject(response.body().string());
-
-                        String name = jsonObject.getString("name");
-                        String imageUrl = jsonObject.getJSONObject("sprites")
-                                .getJSONObject("other")
-                                .getJSONObject("official-artwork")
-                                .getString("front_default");
-
-                        JSONArray typesJson = jsonObject.getJSONArray("types");
-                        List<String> types = new ArrayList<>();
-                        for (int i = 0; i < typesJson.length(); i++) {
-                            types.add(typesJson.getJSONObject(i).getJSONObject("type").getString("name"));
-                        }
-
-                        JSONArray allMoves = jsonObject.getJSONArray("moves");
-                        List<String> chosenMoves = new ArrayList<>();
-                        List<Integer> chosenPower = new ArrayList<>();
-
-                        for (int i = 0; i < 4; i++) {
-                            chosenMoves.add("");
-                            chosenPower.add(0);
-                        }
-
-                        Random r = new Random();
-                        int[] movesFetched = {0};
-
-                        int moveLimit = Math.min(allMoves.length(), 4);
-
-                        for (int i = 0; i < moveLimit; i++) {
-                            int randomIdx = r.nextInt(allMoves.length());
-                            JSONObject moveObj = allMoves.getJSONObject(randomIdx).getJSONObject("move");
-
-                            chosenMoves.set(i, moveObj.getString("name"));
-                            String moveUrl = moveObj.getString("url");
-                            final int currentMoveIndex = i;
-
-                            Request moveReq = new Request.Builder().url(moveUrl).build();
-                            client.newCall(moveReq).enqueue(new Callback() {
-                                @Override
-                                public void onResponse(@NonNull Call call, @NonNull Response moveResponse) throws IOException {
-                                    if (moveResponse.isSuccessful() && moveResponse.body() != null) {
-                                        try {
-                                            JSONObject moveJson = new JSONObject(moveResponse.body().string());
-                                            chosenPower.set(currentMoveIndex, moveJson.optInt("power", 0));
-                                        } catch (Exception e) {
-                                            chosenPower.set(currentMoveIndex, 0);
-                                        }
-                                    }
-
-                                    synchronized (movesFetched) {
-                                        movesFetched[0]++;
-                                        if (movesFetched[0] == moveLimit) {
-                                            finalizePokemonPull(id, name, types, stars, chosenMoves, chosenPower, imageUrl, maxPulls, dialog);
-                                        }
-                                    }
-                                }
-
-                                @Override
-                                public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                                    synchronized (movesFetched) {
-                                        movesFetched[0]++;
-                                        if (movesFetched[0] == moveLimit) {
-                                            finalizePokemonPull(id, name, types, stars, chosenMoves, chosenPower, imageUrl, maxPulls, dialog);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        runOnUiThread(dialog::dismiss);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                runOnUiThread(dialog::dismiss);
-            }
-        });
-    }
-
-    private void finalizePokemonPull(int id, String name, List<String> types, int stars,
-                                     List<String> moves, List<Integer> movePower, String imageUrl,
-                                     int maxPulls, ProgressDialog dialog) {
-
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        long currentTime = System.currentTimeMillis();
-
-        Pokemon newPokemon = new Pokemon(id, name, types, stars, moves, movePower, imageUrl, uid, currentTime);
-
-        runOnUiThread(() -> {
-            pulledPokemonList.add(newPokemon);
-            finishedPulls++;
-
-            if (finishedPulls == maxPulls) {
-                dialog.dismiss();
-
-                adapter = new PokemonAdapter(pulledPokemonList);
-                recyclerViewGacha.setAdapter(adapter);
-
-                savePokemonToInventory(pulledPokemonList);
-            }
-        });
     }
 }

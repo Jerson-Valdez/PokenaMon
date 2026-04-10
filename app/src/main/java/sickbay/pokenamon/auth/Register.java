@@ -3,6 +3,7 @@ package sickbay.pokenamon.auth;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -11,14 +12,10 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
 import sickbay.pokenamon.R;
-import sickbay.pokenamon.controller.UserManager;
-import sickbay.pokenamon.core.Gacha;
+import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.core.Home;
+import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.model.User;
 
 public class Register extends AppCompatActivity {
@@ -47,52 +44,62 @@ public class Register extends AppCompatActivity {
 
     private void action(){
         alreadyHaveAccount.setOnClickListener(v -> {
-            Intent intent = new Intent(Register.this, Login.class);
-            startActivity(intent);
+            startActivity(new Intent(this, Login.class));
             finish();
         });
 
         signUp.setOnClickListener(v -> {
-            if(email.getText().toString().isEmpty() ||
-                    username.getText().toString().isEmpty() ||
-                    password.getText().toString().isEmpty() ||
-                    confirmPassword.getText().toString().isEmpty()){
-                Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show();
-            }else{
-                if (password.getText().toString().equals(confirmPassword.getText().toString())) {
-                    registerUser(email.getText().toString(), password.getText().toString(), username.getText().toString());
-                } else {
-                    Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show();
-                    }
-                }
+            String emailValue = email.getText().toString().trim();
+            String usernameValue = username.getText().toString().trim();
+            String passwordValue = password.getText().toString().trim();
+            String confirmPasswordValue = confirmPassword.getText().toString().trim();
+
+            if(emailValue.isEmpty() || usernameValue.isEmpty() || passwordValue.isEmpty() || confirmPasswordValue.isEmpty()) {
+                Toast.makeText(context, "Fill in all the fields", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (!passwordValue.contentEquals(confirmPasswordValue)) {
+                Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            registerUser(emailValue, passwordValue, usernameValue);
             }
         );
     }
 
     private void registerUser(String email, String password, String username) {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        signUp.setEnabled(false);
 
-        auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
+        DB db = DB.getAuthInstance(this);
+
+        db.createAuthUser(email, password,
+                (task) -> {
                     if (task.isSuccessful()) {
-                        String userId = auth.getCurrentUser().getUid();
-                        User newUser = new User(username, email);
+                        signUp.setEnabled(true);
+                        String uid = db.getAuthUser().getUid();
+                        User user = new User(uid, username, email);
 
-                        db.child("users").child(userId).setValue(newUser)
-                                .addOnCompleteListener(dbTask -> {
-                                    if (dbTask.isSuccessful()) {
-                                        UserManager.getInstance().setUser(newUser);
-                                        new Auth(context).setRememberMe(email, password);
-                                        Toast.makeText(context, "Account Created!", Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(Register.this, Home.class);
-                                        startActivity(intent);
+                        db.createUser(uid, user,
+                                (childTask) -> {
+                                    if (childTask.isSuccessful()) {
+                                        UserManager.getInstance().setUser(user);
+                                        Toast.makeText(context, "Account created!", Toast.LENGTH_SHORT).show();
+                                        startActivity(new Intent(this, Home.class));
                                         finish();
                                     }
+                                },
+                                (childError) -> {
+                                    Log.e("Register", childError.getMessage(), childError);
+                                    Toast.makeText(context, "Sorry! An error has occurred..", Toast.LENGTH_LONG).show();
                                 });
-                    } else {
-                        Toast.makeText(context, "Registration Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
+                },
+                (error) -> {
+                    signUp.setEnabled(true);
+                    Log.e("Register", error.getMessage(), error);
+                    Toast.makeText(context, "Sorry! An error has occurred..", Toast.LENGTH_LONG).show();
                 });
     }
 }
