@@ -11,6 +11,7 @@ import java.util.Objects;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.User;
+import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.util.Localizer;
 
 public class UserManager {
@@ -55,14 +56,27 @@ public class UserManager {
         DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("pokemonSold").setValue(currentUser.getPokemonSold());
     }
 
+    public void updateHighestFloorWin(int floor) {
+        if (floor > currentUser.getHighestWin()) {
+            currentUser.setHighestWin(floor);
+            DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("highestWin").setValue(currentUser.getHighestWin());
+        }
+    }
+
     public void updateUserEarnedShardsBySelling(int amount) {
         currentUser.setEarnedShardsBySelling(currentUser.getEarnedShardsBySelling() + amount);
         DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("earnedShardsBySelling").setValue(currentUser.getPokemonCount());
     }
 
     public void updateUserEarnedShardsByBattling(int amount) {
-        currentUser.setEarnedShardsBySelling(currentUser.getEarnedShardsByBattling() + amount);
+        currentUser.setEarnedShardsByBattling(currentUser.getEarnedShardsByBattling() + amount);
         DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("earnedShardsByBattling").setValue(currentUser.getPokemonCount());
+    }
+
+    public void updateUserLastBattledPokemon(PokemonDTO pokemon) {
+        setSelectedPokemonForBattle(pokemon);
+        currentUser.setLastBattledPokemon(pokemon);
+        DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("lastBattledPokemon").setValue(pokemon);
     }
 
     public void sellPokemon(Context context, PokemonDTO pokemon, Runnable listener) {
@@ -91,7 +105,7 @@ public class UserManager {
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel()).show();
     }
 
-    private int valuatePokemon(PokemonDTO pokemon) {
+    public int valuatePokemon(PokemonDTO pokemon) {
         return (int) Math.floor(pokemon.getRarity() * 3 + pokemon.getTypes().size() * .5 + pokemon.getLevel() * 2.5 + pokemon.getStats().values().stream().mapToInt(Integer::valueOf).sum() * .085 - pokemon.getExp() * .30);
     }
 }

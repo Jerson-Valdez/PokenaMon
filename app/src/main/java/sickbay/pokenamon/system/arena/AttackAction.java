@@ -1,5 +1,7 @@
 package sickbay.pokenamon.system.arena;
 
+import sickbay.pokenamon.system.arena.events.ActionFinishListener;
+
 public class AttackAction {
     /*
     Represents the 'Attack' action from the game
@@ -9,6 +11,7 @@ public class AttackAction {
     BattlePokemon pokemon;
     BattleMove move;
 
+    private ActionFinishListener listener;
 
     public AttackAction(BattlePokemon pokemon, BattleMove move) {
         this.pokemon = pokemon;
@@ -29,5 +32,13 @@ public class AttackAction {
 
     public void setMove(BattleMove move) {
         this.move = move;
+    }
+
+    public void setActionFinishListener(ActionFinishListener listener) {
+        this.listener = listener;
+    }
+
+    public void notifyFinish() {
+        if (listener != null) listener.onFinish();
     }
 }

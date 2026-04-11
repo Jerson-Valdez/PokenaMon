@@ -1,6 +1,6 @@
 package sickbay.pokenamon.model;
 
-import sickbay.pokenamon.system.arena.BattlePokemon;
+import sickbay.pokenamon.db.dto.PokemonDTO;
 
 public class User {
     private String uid;
@@ -12,7 +12,7 @@ public class User {
     private int pokemonSold;
     private int streak;
     private int highestWin;
-    private BattlePokemon lastBattledPokemon;
+    private PokemonDTO lastBattledPokemon;
     private int earnedShardsBySelling;
     private int earnedShardsByBattling;
 
@@ -98,9 +98,9 @@ public class User {
         this.highestWin = highestWin;
     }
 
-    public BattlePokemon getLastBattledPokemon() { return lastBattledPokemon; }
+    public PokemonDTO getLastBattledPokemon() { return lastBattledPokemon; }
 
-    public void setLastBattledPokemon(BattlePokemon lastBattledPokemon) { this.lastBattledPokemon = lastBattledPokemon; }
+    public void setLastBattledPokemon(PokemonDTO lastBattledPokemon) { this.lastBattledPokemon = lastBattledPokemon; }
 
     public int getEarnedShardsByBattling() {
         return earnedShardsByBattling;

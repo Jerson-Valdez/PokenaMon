@@ -25,7 +25,7 @@ import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.core.Home;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.model.User;
-import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
+import sickbay.pokenamon.system.home.BackgroundMusicManager;
 import sickbay.pokenamon.util.SecurePreferences;
 
 public class Login extends AppCompatActivity {

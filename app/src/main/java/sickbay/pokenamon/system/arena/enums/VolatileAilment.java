@@ -1,12 +1,7 @@
 package sickbay.pokenamon.system.arena.enums;
 
 public enum VolatileAilment {
-    NONE, INFATUATION, CONFUSION, FLINCH,
+    NONE, INFATUATION, CONFUSION, FLINCH, SUBSTITUTE,
     TRAP, NIGHTMARE, TORMENT, DISABLE, YAWN, HEAL_BLOCK, SILENCE,
-    TAR_SHOT, LEECH_SEED, EMBARGO, INGRAIN, TELEKINESIS;
-
-
-    public static String value(String ailment) {
-        return ailment.replaceAll("-", "_").toUpperCase();
-    }
+    TAR_SHOT, LEECH_SEED, EMBARGO, INGRAIN, TELEKINESIS, SMACK_DOWN, THOUSAND_ARROWS, TRI_ATTACK, PERISH_SONG;
 }

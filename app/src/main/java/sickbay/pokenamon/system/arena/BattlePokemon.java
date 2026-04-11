@@ -36,6 +36,7 @@ public class BattlePokemon extends Pokemon {
                 pokemon.getHeight(),
                 pokemon.getStats(),
                 pokemon.getMoves());
+        super.setCollectionId(pokemon.getCollectionId());
         totalHp = pokemon.getName().equals(ArenaRegistry.SINGLE_HP_POKEMON) ? 1 : pokemon.getStats().get(StatId.HP).getEffectiveStat(pokemon.getLevel());
         currentHp = totalHp;
         battleMoves = Arrays.stream(pokemon.getMoves()).map(BattleMove::new).toArray(BattleMove[]::new);
@@ -60,6 +61,11 @@ public class BattlePokemon extends Pokemon {
     public VolatileAilment getVolatileAilment(sickbay.pokenamon.system.arena.enums.VolatileAilment ailment) {
         return volatileAilments.stream().filter(v -> v.getType() == ailment).collect(Collectors.toList()).get(0);
     }
+
+    public HashSet<VolatileAilment> getVolatileAilments() {
+        return volatileAilments;
+    }
+
     public void addVolatileAilment(VolatileAilment ailment) { volatileAilments.add(ailment); }
     public void setVolatileAilment(VolatileAilment ailment) { removeVolatileAilment(ailment.getType()); addVolatileAilment(ailment); }
     public void removeVolatileAilment(sickbay.pokenamon.system.arena.enums.VolatileAilment ailment) { volatileAilments.removeIf(v -> v.getType() == ailment); }
@@ -223,6 +229,14 @@ public class BattlePokemon extends Pokemon {
         if (battlePokemonListener != null) battlePokemonListener.onRecoil(pokemon);
     }
 
+    public void notifyTarShot(BattlePokemon pokemon) {
+        if (battlePokemonListener != null) battlePokemonListener.onTarShot(pokemon);
+    }
+
+    public void notifyPerishSong(BattlePokemon pokemon, int turns) {
+        if (battlePokemonListener != null) battlePokemonListener.onPerishSong(pokemon, turns);
+    }
+
     public void notifyStatChange(BattlePokemon pokemon, StatId statId, int stage) {
         if (battlePokemonListener != null) battlePokemonListener.onStatChange(pokemon, statId, stage);
     }
@@ -233,6 +247,14 @@ public class BattlePokemon extends Pokemon {
 
     public void notifyCure(BattlePokemon pokemon, Ailment ailment) {
         if (battlePokemonListener != null) battlePokemonListener.onCure(pokemon, ailment);
+    }
+
+    public void notifyNightmare(BattlePokemon pokemon) {
+        if (battlePokemonListener != null) battlePokemonListener.onNightmare(pokemon);
+    }
+
+    public void notifyIngrain(BattlePokemon pokemon) {
+        if (battlePokemonListener != null) battlePokemonListener.onIngrain(pokemon);
     }
 
     public void notifyVolatileInflict(BattlePokemon pokemon, VolatileAilment ailment) {
