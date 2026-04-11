@@ -9,6 +9,7 @@
     <color name="coin1">#1AEAB308</color>
     <color name="redShadow">#80DF1818</color>
     <color name="blackShadow">#40000000</color>
+    <color name="overlay">#80000000</color>
 
     //types
     <color name="normal">#A8A77A</color>

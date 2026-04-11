@@ -9,6 +9,7 @@ public class AttackAction {
     BattlePokemon pokemon;
     BattleMove move;
 
+
     public AttackAction(BattlePokemon pokemon, BattleMove move) {
         this.pokemon = pokemon;
         this.move = move;

@@ -7,14 +7,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@mipmap/battlebg_foreground"
-    android:paddingTop="50dp"
     tools:context=".core.Battle">
 
     <ImageView
-        android:id="@+id/enemyPokemon"
+        android:id="@+id/enemyPokemonSprite"
         android:layout_width="143dp"
         android:layout_height="143dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="85dp"
         android:layout_marginEnd="20dp"
         android:elevation="2dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -28,9 +27,9 @@
         android:scaleX="3"
         android:scaleY="3"
         android:src="@mipmap/enemybase_foreground"
-        app:layout_constraintEnd_toEndOf="@+id/enemyPokemon"
-        app:layout_constraintStart_toStartOf="@+id/enemyPokemon"
-        app:layout_constraintTop_toBottomOf="@+id/enemyPokemon" />
+        app:layout_constraintEnd_toEndOf="@+id/enemyPokemonSprite"
+        app:layout_constraintStart_toStartOf="@+id/enemyPokemonSprite"
+        app:layout_constraintTop_toBottomOf="@+id/enemyPokemonSprite" />
 
     <LinearLayout
         android:id="@+id/enemyInfoLayout"
@@ -38,56 +37,75 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="90dp"
+        android:layout_marginBottom="180dp"
+        android:layout_marginTop="100dp"
         android:elevation="3dp"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/playerPokemon"
-        app:layout_constraintEnd_toStartOf="@+id/enemyPokemon"
+        app:layout_constraintBottom_toTopOf="@+id/playerPokemonSprite"
+        app:layout_constraintEnd_toStartOf="@+id/enemyPokemonSprite"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="4dp"
             android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/enemyPokemonName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="8dp"
                 android:text="Enemy Pokemon"
                 android:textColor="@color/text"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textSize="18sp"
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/enemyPokemonLevel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Lv. 56"
-                android:textColor="@color/text"
-                android:textSize="20sp"
+                android:textColor="@color/textVariant"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <com.google.android.material.progressindicator.LinearProgressIndicator
-            android:id="@+id/enemyPokemonHpBar"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:indeterminate="false"
-            android:scaleY="8" />
+            >
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
+                android:id="@+id/enemyPokemonHpBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:indeterminate="false"
+                android:scaleY="6"
+                android:progressBackgroundTint="@color/textVariant"
+                android:progressTint="@color/grass"
+                android:max="100"
+                android:progress="56"
+                />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/enemyPokemonAilment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:layout_gravity="start"
+            />
+
     </LinearLayout>
 
     <ImageView
-        android:id="@+id/playerPokemon"
-        android:layout_width="143dp"
-        android:layout_height="143dp"
+        android:id="@+id/playerPokemonSprite"
+        android:layout_width="163dp"
+        android:layout_height="163dp"
         android:elevation="2dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginBottom="-235dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginBottom="-255dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/playerBase"
         app:layout_constraintTop_toBottomOf="@+id/imageView2" />
@@ -103,35 +121,44 @@
         android:layout_marginBottom="-30dp"
         android:layout_marginStart="-85dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/tableLayout" />
+        app:layout_constraintBottom_toTopOf="@+id/dock" />
 
     <LinearLayout
         android:id="@+id/playerInfoLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="60dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginTop="180dp"
         android:elevation="3dp"
         android:orientation="vertical"
-        app:layout_constraintStart_toEndOf="@+id/playerPokemon"
+        app:layout_constraintStart_toEndOf="@+id/playerPokemonSprite"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/tableLayout"
+        app:layout_constraintBottom_toTopOf="@+id/dock"
         app:layout_constraintTop_toBottomOf="@+id/imageView2">
+
+        <TextView
+            android:id="@+id/playerPokemonAilment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:layout_gravity="end"
+            />
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="4dp">
 
             <TextView
                 android:id="@+id/playerPokemonName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="8dp"
                 android:text="Player Pokemon"
                 android:textColor="@color/text"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -139,204 +166,274 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Lv. 69"
-                android:textColor="@color/text"
-                android:textSize="20sp"
+                android:textColor="@color/textVariant"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <com.google.android.material.progressindicator.LinearProgressIndicator
-            android:id="@+id/playerPokemonHpBar"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:indeterminate="false"
-            android:scaleY="8" />
+            >
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
+                android:id="@+id/playerPokemonHpBar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:indeterminate="false"
+                android:scaleY="6"
+                android:progressBackgroundTint="@color/textVariant"
+                android:progressTint="@color/grass"
+                android:max="100"
+                android:progress="56"
+                />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                >
+                <TextView
+                    android:id="@+id/playerPokemonHp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="150 / 250"
+                    android:textColor="@color/text"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    />
+            </RelativeLayout>
+        </FrameLayout>
     </LinearLayout>
 
-    <TableLayout
-        android:id="@+id/tableLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/rectangle"
-        android:elevation="4dp"
-        android:padding="10dp"
+    <LinearLayout
+        android:id="@+id/dock"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        android:background="@color/background"
+        android:elevation="4dp"
+        android:padding="10dp"
+        >
 
-        <TableRow
+        <TextView
+            android:id="@+id/battleLog"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:textColor="@color/textVariant"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:gravity="center"
+            />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_margin="10dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="8dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/move1Name"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:text="Move Name"
-                        android:textColor="@color/text"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:id="@+id/move1Type"
-                        android:layout_width="60dp"
-                        android:layout_height="25dp" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/move1Pp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="PP / PP"
-                    android:textColor="@color/text"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_margin="10dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="8dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/move2Name"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:text="Move Name"
-                        android:textColor="@color/text"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:id="@+id/move2Type"
-                        android:layout_width="60dp"
-                        android:layout_height="25dp" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/move2Pp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="PP / PP"
-                    android:textColor="@color/text"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </TableRow>
-
-        <TableRow
+        <TableLayout
+            android:id="@+id/movePanel"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="8dp">
+            android:layout_height="match_parent"
+            android:gravity="center">
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
                 <LinearLayout
+                    android:id="@+id/move1"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_margin="6dp"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:background="@drawable/rectangle"
+                    android:padding="8dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/move1Name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="Move Name"
+                            android:textColor="@color/text"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/move1Type"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:textSize="10sp"
+                            android:textColor="@color/text"
+                            android:background="@drawable/type"/>
+                    </LinearLayout>
 
                     <TextView
-                        android:id="@+id/move3Name"
+                        android:id="@+id/move1Pp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:text="Move Name"
+                        android:text="PP / PP"
                         android:textColor="@color/text"
-                        android:textSize="14sp"
+                        android:textSize="10sp"
                         android:textStyle="bold" />
-
-                    <ImageView
-                        android:id="@+id/move3Type"
-                        android:layout_width="60dp"
-                        android:layout_height="25dp" />
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/move3Pp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="PP / PP"
-                    android:textColor="@color/text"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:padding="8dp">
 
                 <LinearLayout
+                    android:id="@+id/move2"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_margin="6dp"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:background="@drawable/rectangle"
+                    android:padding="8dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/move2Name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="Move Name"
+                            android:textColor="@color/text"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/move2Type"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:textSize="10sp"
+                            android:textColor="@color/text"
+                            android:background="@drawable/type"/>
+                    </LinearLayout>
 
                     <TextView
-                        android:id="@+id/move4Name"
+                        android:id="@+id/move2Pp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
-                        android:text="Move Name"
+                        android:text="PP / PP"
                         android:textColor="@color/text"
-                        android:textSize="14sp"
+                        android:textSize="10sp"
                         android:textStyle="bold" />
+                </LinearLayout>
+            </TableRow>
 
-                    <ImageView
-                        android:id="@+id/move4Type"
-                        android:layout_width="60dp"
-                        android:layout_height="25dp" />
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:id="@+id/move3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:background="@drawable/rectangle"
+                    android:padding="8dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/move3Name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="Move Name"
+                            android:textColor="@color/text"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/move3Type"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:textSize="10sp"
+                            android:textColor="@color/text"
+                            android:background="@drawable/type"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/move3Pp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PP / PP"
+                        android:textColor="@color/text"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/move4Pp"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:id="@+id/move4"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="PP / PP"
-                    android:textColor="@color/text"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-        </TableRow>
-    </TableLayout>
+                    android:layout_margin="6dp"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:background="@drawable/rectangle"
+                    android:padding="8dp">
 
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/move4Name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="Move Name"
+                            android:textColor="@color/text"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/move4Type"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:textSize="10sp"
+                            android:textColor="@color/text"
+                            android:background="@drawable/type"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/move4Pp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="PP / PP"
+                        android:textColor="@color/text"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </TableRow>
+        </TableLayout>
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,6 +1,6 @@
 package sickbay.pokenamon.model;
 
-import sickbay.pokenamon.db.dto.PokemonDTO;
+import sickbay.pokenamon.system.arena.BattlePokemon;
 
 public class User {
     private String uid;
@@ -9,9 +9,12 @@ public class User {
     private int coins;
     private int wins;
     private int pokemonCount;
+    private int pokemonSold;
     private int streak;
     private int highestWin;
-    private PokemonDTO lastBattledPokemon;
+    private BattlePokemon lastBattledPokemon;
+    private int earnedShardsBySelling;
+    private int earnedShardsByBattling;
 
     public User(){}
 
@@ -71,6 +74,14 @@ public class User {
         this.pokemonCount = pokemonCount;
     }
 
+    public int getPokemonSold() {
+        return pokemonSold;
+    }
+
+    public void setPokemonSold(int pokemonSold) {
+        this.pokemonSold = pokemonSold;
+    }
+
     public int getStreak() {
         return streak;
     }
@@ -87,7 +98,23 @@ public class User {
         this.highestWin = highestWin;
     }
 
-    public PokemonDTO getLastBattledPokemon() { return lastBattledPokemon; }
+    public BattlePokemon getLastBattledPokemon() { return lastBattledPokemon; }
 
-    public void setLastBattledPokemon(PokemonDTO lastBattledPokemon) { this.lastBattledPokemon = lastBattledPokemon; }
+    public void setLastBattledPokemon(BattlePokemon lastBattledPokemon) { this.lastBattledPokemon = lastBattledPokemon; }
+
+    public int getEarnedShardsByBattling() {
+        return earnedShardsByBattling;
+    }
+
+    public void setEarnedShardsByBattling(int earnedShardsByBattling) {
+        this.earnedShardsByBattling = earnedShardsByBattling;
+    }
+
+    public int getEarnedShardsBySelling() {
+        return earnedShardsBySelling;
+    }
+
+    public void setEarnedShardsBySelling(int earnedShardsBySelling) {
+        this.earnedShardsBySelling = earnedShardsBySelling;
+    }
 }

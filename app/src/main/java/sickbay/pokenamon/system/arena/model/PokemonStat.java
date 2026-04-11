@@ -12,7 +12,7 @@ public class PokemonStat {
         this.baseStat = baseStat;
     }
     public double getStageMultiplier() {
-        if (stat ==StatId.ACCURACY || stat == StatId.EVASION) {
+        if (stat == StatId.ACCURACY || stat == StatId.EVASION) {
             int[] num = {33, 36, 43, 50, 60, 75, 100, 133, 166, 200, 250, 266, 300};
             int idx = stage + 6;
             return (double) num[idx] / 100;
@@ -30,6 +30,13 @@ public class PokemonStat {
 
     public int getBattleStat() {
         return (int) (baseStat * getStageMultiplier());
+    }
+
+    public int getEffectiveStat(int level) {
+        if (stat == StatId.HP) {
+            return (int) Math.floor(2 * baseStat + 5 + (level + baseStat) * .9) * level / 100 + level + 10;
+        }
+        return (int) Math.floor(2 * baseStat + 5 + (level + baseStat) * .9) * level / 100 + 5;
     }
 
     public int getStage() {

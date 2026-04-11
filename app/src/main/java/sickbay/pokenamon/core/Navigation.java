@@ -1,15 +1,12 @@
-package sickbay.pokenamon.helper;
+package sickbay.pokenamon.core;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.widget.ImageView;
 
 import sickbay.pokenamon.R;
-import sickbay.pokenamon.core.Collection;
-import sickbay.pokenamon.core.Gacha;
-import sickbay.pokenamon.core.Home;
 
-public class BottomNavHelper {
+public class Navigation {
 
     public static void setup(Activity activity) {
         ImageView navHome = activity.findViewById(R.id.nav_home);
@@ -26,16 +23,26 @@ public class BottomNavHelper {
 
         if (activity instanceof Home) {
             navHome.setBackgroundResource(R.drawable.rect);
+        }  else if (activity instanceof Battle) {
+            navBattle.setBackgroundResource(R.drawable.rect);
         } else if (activity instanceof Gacha) {
             navSummon.setBackgroundResource(R.drawable.rect);
-        } else if (activity instanceof Collection) {
+        } else {
             navCollection.setBackgroundResource(R.drawable.rect);
         }
-
 
         navHome.setOnClickListener(v -> {
             if (!(activity instanceof Home)) {
                 Intent intent = new Intent(activity, Home.class);
+                activity.startActivity(intent);
+                activity.overridePendingTransition(0, 0);
+                activity.finish();
+            }
+        });
+
+        navBattle.setOnClickListener(v -> {
+            if (!(activity instanceof Battle)) {
+                Intent intent = new Intent(activity, Battle.class);
                 activity.startActivity(intent);
                 activity.overridePendingTransition(0, 0);
                 activity.finish();

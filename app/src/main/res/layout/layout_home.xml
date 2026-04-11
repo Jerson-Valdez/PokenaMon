@@ -101,7 +101,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Your last used pokemon is"
+                            android:text="Your last battle was with"
                             android:textColor="@color/textVariant"
                             android:textStyle="bold"
                             android:textSize="12sp"

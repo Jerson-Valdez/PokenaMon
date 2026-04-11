@@ -118,7 +118,7 @@ public class PokeAPIManager {
                 JSONArray moves = response.getJSONArray("moves");
                 Set<String> chosenMoves = new HashSet<>();
 
-                while (chosenMoves.size() < Math.min(moves.length(), 4)) {
+                while (chosenMoves.size() < Math.min(moves.length() > 3 ? moves.length() : 4, 4)) {
                     String move = moves.getJSONObject(rand.nextInt(moves.length())).getJSONObject("move").getString("name");
 
                     if (ArenaRegistry.isBlacklisted(new BattleMove(move))) {
@@ -135,6 +135,81 @@ public class PokeAPIManager {
 
                 getFrontSpriteFallback(spriteUrls, 0, sprite, () -> {
                     Pokemon pokemon = new Pokemon(pokedexId, name, 1, 0, typeSet, sprite, cry, weight, height, statsMap, chosenMoves.toArray(new String[0]));
+                    listener.onComplete(pokemon);
+                });
+
+
+            } catch (JSONException e) {
+                listener.onError(e.getMessage());
+            }
+        }, (error) -> {
+            listener.onError(error.getMessage());
+        });
+
+        RequestSingleton.getInstance(context).addToRequestQueue(request);
+    }
+
+    public void getGachaEnemyPokemon(int playerLevel, GetGachaPokemonListener listener) throws RuntimeException {
+        int pokemonId = rand.nextInt(ArenaRegistry.POKEDEX_ENTRY_COUNT) + 1;
+        int level = rand.nextInt(playerLevel) + (rand.nextInt(6) < 3 ? rand.nextInt(playerLevel < 16 ? 2 : 5) + 1 : rand.nextInt(playerLevel < 16 ? 3 : 6) + 1);
+
+        String query = buildEndpoint(Endpoint.POKEMON, String.valueOf(pokemonId));
+
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, query, null, (response) -> {
+            try {
+                int pokedexId = response.getInt("id");
+                String name = response.getString("name");
+                double weight = hectogramToKilogram(response.getInt("weight"));
+                double height = decimeterToMeter(response.getInt("height"));
+                String cry = response.getJSONObject("cries").getString("latest");
+
+                JSONObject sprites = response.getJSONObject("sprites");
+
+                PokemonSprite sprite = new PokemonSprite(
+                        sprites.getString("front_default"),
+                        sprites.getString("back_default")
+                );
+
+                HashMap<StatId, PokemonStat> statsMap = new HashMap<>();
+
+                JSONArray types = response.getJSONArray("types");
+                Type[] typeSet = new Type[types.length()];
+
+                typeSet[0] = Type.valueOf(types.getJSONObject(0).getJSONObject("type").getString("name").toUpperCase());
+
+                if (typeSet.length > 1) {
+                    typeSet[1] = Type.valueOf(types.getJSONObject(1).getJSONObject("type").getString("name").toUpperCase());
+                }
+
+                JSONArray stats = response.getJSONArray("stats");
+
+                statsMap.put(StatId.HP, new PokemonStat(StatId.HP, stats.getJSONObject(0).getInt("base_stat")));
+                statsMap.put(StatId.ATTACK, new PokemonStat(StatId.ATTACK, stats.getJSONObject(1).getInt("base_stat")));
+                statsMap.put(StatId.DEFENSE, new PokemonStat(StatId.DEFENSE, stats.getJSONObject(2).getInt("base_stat")));
+                statsMap.put(StatId.SPECIAL_ATTACK, new PokemonStat(StatId.SPECIAL_ATTACK, stats.getJSONObject(3).getInt("base_stat")));
+                statsMap.put(StatId.SPECIAL_DEFENSE, new PokemonStat(StatId.SPECIAL_DEFENSE, stats.getJSONObject(4).getInt("base_stat")));
+                statsMap.put(StatId.SPEED, new PokemonStat(StatId.SPEED, stats.getJSONObject(5).getInt("base_stat")));
+
+                JSONArray moves = response.getJSONArray("moves");
+                Set<String> chosenMoves = new HashSet<>();
+
+                while (chosenMoves.size() < Math.min(moves.length() > 3 ? moves.length() : 4, 4)) {
+                    String move = moves.getJSONObject(rand.nextInt(moves.length())).getJSONObject("move").getString("name");
+
+                    if (ArenaRegistry.isBlacklisted(new BattleMove(move))) {
+                        continue;
+                    }
+
+                    chosenMoves.add(move);
+                };
+
+                List<String> spriteUrls = new ArrayList<>();
+                spriteUrls.add(buildEndpoint(Endpoint.FRONT, sanitizePokemonNameForShowdown(name)));
+                spriteUrls.add(buildEndpoint(Endpoint.FRONT_FALLBACK, sanitizePokemonNameForShowdown(name)));
+                spriteUrls.add(buildFallbackEndpoint(Endpoint.FRONT_FALLBACK, sanitizePokemonNameForShowdown(name)));
+
+                getFrontSpriteFallback(spriteUrls, 0, sprite, () -> {
+                    Pokemon pokemon = new Pokemon(pokedexId, name, level, 0, typeSet, sprite, cry, weight, height, statsMap, chosenMoves.toArray(new String[0]));
                     listener.onComplete(pokemon);
                 });
 

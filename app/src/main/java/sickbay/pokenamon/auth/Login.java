@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,13 +26,16 @@ import sickbay.pokenamon.core.Home;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.model.User;
 import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
+import sickbay.pokenamon.util.SecurePreferences;
 
 public class Login extends AppCompatActivity {
     Context context = this;
-    EditText email, password;
+    EditText emailField, passwordField;
     Button login;
+    CheckBox rememberMe;
     TextView goToRegister;
     FirebaseAuth auth;
+    SecurePreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,27 +47,37 @@ public class Login extends AppCompatActivity {
         BackgroundMusicManager.getInstance(this).pause();
 
         auth = FirebaseAuth.getInstance();
+        prefs = new SecurePreferences(this, "credentials", true);
 
         init();
         action();
     }
 
     private void init() {
-        email = findViewById(R.id.email);
-        password = findViewById(R.id.password);
+        emailField = findViewById(R.id.email);
+        passwordField = findViewById(R.id.password);
         login = findViewById(R.id.login);
         goToRegister = findViewById(R.id.dontHaveAccount);
+        rememberMe = findViewById(R.id.rememberMe);
+
+        if (prefs.getString("email") != null) {
+            rememberMe.setChecked(true);
+            emailField.setText(prefs.getString("email"));
+            passwordField.setText(prefs.getString("password"));
+
+            loginUser(prefs.getString("email"), prefs.getString("password"));
+        }
     }
 
     private void action() {
         goToRegister.setOnClickListener(v -> {
             startActivity(new Intent(this, Register.class));
-            finish();
+            overridePendingTransition(0, 0);
         });
 
         login.setOnClickListener(v -> {
-            String emailValue = email.getText().toString().trim();
-            String passwordValue = password.getText().toString().trim();
+            String emailValue = emailField.getText().toString().trim();
+            String passwordValue = passwordField.getText().toString().trim();
 
             if (emailValue.isEmpty() || passwordValue.isEmpty()) {
                 Toast.makeText(context, "Please enter your credentials!", Toast.LENGTH_SHORT).show();
@@ -74,19 +88,30 @@ public class Login extends AppCompatActivity {
         });
     }
 
+    private void toggleFields(boolean enable) {
+        emailField.setEnabled(enable);
+        passwordField.setEnabled(enable);
+        login.setEnabled(enable);
+    }
+
     private void loginUser(String email, String password) {
-        login.setEnabled(false);
+        toggleFields(false);
 
         DB db = DB.getAuthInstance(this);
         db.signInAuthUser(email, password,
                 (task) -> {
                     if (task.isSuccessful()) {
-                        login.setEnabled(true);
+                        toggleFields(true);
+
+                        if (rememberMe.isChecked()) {
+                            prefs.put("email", email);
+                            prefs.put("password", password);
+                        }
                         fetchUserProfile(db.getAuthUser().getUid());
                     }
                 },
                 (error) -> {
-                    login.setEnabled(true);
+                    toggleFields(true);
                     Log.e("Login", error.getMessage(), error);
                     Toast.makeText(context, "Please log in to a valid account!", Toast.LENGTH_SHORT).show();
                 });
@@ -107,6 +132,7 @@ public class Login extends AppCompatActivity {
                             Toast.makeText(context, "Welcome back, " + user.getUsername() + "!", Toast.LENGTH_SHORT).show();
                             startActivity(new Intent(Login.this, Home.class));
                             finish();
+                            overridePendingTransition(0, 0);
                         }
                     }
 

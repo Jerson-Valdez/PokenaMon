@@ -1,14 +1,3 @@
 <resources>
     <string name="app_name">Pokenamon</string>
-    
-    <array name="lvl">
-        <item>Level: Low-High</item>
-        <item>Level: High-Low</item>
-    </array>
-
-    <array name="rarity">
-        <item>Rarity: Low-High</item>
-        <item>Rarity: High-Low</item>
-    </array>
-
 </resources>

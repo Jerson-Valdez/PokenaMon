@@ -61,35 +61,6 @@
 
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="@drawable/rectangle"
-                    android:orientation="vertical"
-                    android:padding="18dp"
-                    android:layout_marginRight="8dp">
-
-                    <TextView
-                        android:id="@+id/streak"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="1"
-                        android:textStyle="bold"
-                        android:textColor="@color/text"
-                        android:textSize="20sp"
-                        android:gravity="center"/>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Daily Streak"
-                        android:textColor="@color/textVariant"
-                        android:textSize="12sp"
-                        android:gravity="center"/>
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@drawable/rectangle"
@@ -114,6 +85,34 @@
                         android:textColor="@color/textVariant"
                         android:textSize="12sp"
                         android:gravity="center"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/rectangle"
+                    android:orientation="vertical"
+                    android:padding="18dp"
+                    android:layout_marginRight="8dp">
+
+                    <TextView
+                        android:id="@+id/soldPokemons"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="1"
+                        android:textStyle="bold"
+                        android:textColor="@color/text"
+                        android:textSize="20sp"
+                        android:gravity="center"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Sold 'Mons"
+                        android:textColor="@color/textVariant"
+                        android:textSize="12sp"
+                        android:gravity="center"/>
 
                 </LinearLayout>
 
@@ -126,7 +125,7 @@
                     android:padding="18dp">
 
                     <TextView
-                        android:id="@+id/wins"
+                        android:id="@+id/earnedShardsBySelling"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="4"
@@ -135,16 +134,27 @@
                         android:textSize="20sp"
                         android:gravity="center"/>
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Total Wins"
-                        android:textColor="@color/textVariant"
-                        android:textSize="12sp"
-                        android:gravity="center"/>
-
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        >
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@mipmap/currency_foreground"
+                            android:scaleType="fitCenter"
+                            />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Earned"
+                            android:textColor="@color/textVariant"
+                            android:textSize="12sp"
+                            android:gravity="center"/>
+                    </LinearLayout>
                 </LinearLayout>
-
             </LinearLayout>
         </LinearLayout>
 
@@ -169,7 +179,7 @@
                     android:button="@null"
                     android:background="@drawable/rectangle"
                     android:padding="12dp"
-                    android:text="Name: ↑"
+                    android:text="Name"
                     android:textAllCaps="false"
                     android:textStyle="bold"
                     android:textColor="@color/textVariant"
@@ -191,7 +201,7 @@
                     android:button="@null"
                     android:background="@drawable/rectangle"
                     android:padding="12dp"
-                    android:text="Level: ↑"
+                    android:text="Level"
                     android:textAllCaps="false"
                     android:textStyle="bold"
                     android:textColor="@color/textVariant"
@@ -214,7 +224,7 @@
                     android:button="@null"
                     android:background="@drawable/rectangle"
                     android:padding="12dp"
-                    android:text="Rarity: ↑"
+                    android:text="Rarity"
                     android:textAllCaps="false"
                     android:textStyle="bold"
                     android:textColor="@color/textVariant"
@@ -235,7 +245,7 @@
                     android:button="@null"
                     android:background="@drawable/rectangle"
                     android:padding="12dp"
-                    android:text="Date: ↑"
+                    android:text="Date"
                     android:textAllCaps="false"
                     android:textStyle="bold"
                     android:textColor="@color/textVariant"

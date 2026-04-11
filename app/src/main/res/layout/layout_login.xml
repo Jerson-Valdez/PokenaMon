@@ -67,6 +67,14 @@
         android:textColor="@color/text"
         app:backgroundTint="@null"/>
 
+    <CheckBox
+        android:id="@+id/rememberMe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Remember me"
+        android:textColor="@color/textVariant"
+        />
+
     <Space
         android:layout_width="match_parent"
         android:layout_height="20dp"/>

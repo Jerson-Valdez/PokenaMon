@@ -20,7 +20,7 @@ import sickbay.pokenamon.model.User;
 
 public class Register extends AppCompatActivity {
     Context context = this;
-    EditText email, username, password, confirmPassword;
+    EditText emailField, usernameField, passwordField, confirmPasswordField;
     Button signUp;
     TextView alreadyHaveAccount;
 
@@ -34,10 +34,10 @@ public class Register extends AppCompatActivity {
     }
 
     private void init(){
-        email = findViewById(R.id.email);
-        username = findViewById(R.id.username);
-        password = findViewById(R.id.password);
-        confirmPassword = findViewById(R.id.confirmPassword);
+        emailField = findViewById(R.id.email);
+        usernameField = findViewById(R.id.username);
+        passwordField = findViewById(R.id.password);
+        confirmPasswordField = findViewById(R.id.confirmPassword);
         signUp = findViewById(R.id.signUp);
         alreadyHaveAccount = findViewById(R.id.alreadyHaveAccount);
     }
@@ -45,14 +45,14 @@ public class Register extends AppCompatActivity {
     private void action(){
         alreadyHaveAccount.setOnClickListener(v -> {
             startActivity(new Intent(this, Login.class));
-            finish();
+            overridePendingTransition(0, 0);
         });
 
         signUp.setOnClickListener(v -> {
-            String emailValue = email.getText().toString().trim();
-            String usernameValue = username.getText().toString().trim();
-            String passwordValue = password.getText().toString().trim();
-            String confirmPasswordValue = confirmPassword.getText().toString().trim();
+            String emailValue = emailField.getText().toString().trim();
+            String usernameValue = usernameField.getText().toString().trim();
+            String passwordValue = passwordField.getText().toString().trim();
+            String confirmPasswordValue = confirmPasswordField.getText().toString().trim();
 
             if(emailValue.isEmpty() || usernameValue.isEmpty() || passwordValue.isEmpty() || confirmPasswordValue.isEmpty()) {
                 Toast.makeText(context, "Fill in all the fields", Toast.LENGTH_SHORT).show();
@@ -69,15 +69,23 @@ public class Register extends AppCompatActivity {
         );
     }
 
+    private void toggleFields(boolean enable) {
+        emailField.setEnabled(enable);
+        usernameField.setEnabled(enable);
+        passwordField.setEnabled(enable);
+        confirmPasswordField.setEnabled(enable);
+        signUp.setEnabled(enable);
+    }
+
     private void registerUser(String email, String password, String username) {
-        signUp.setEnabled(false);
+        toggleFields(false);
 
         DB db = DB.getAuthInstance(this);
 
         db.createAuthUser(email, password,
                 (task) -> {
                     if (task.isSuccessful()) {
-                        signUp.setEnabled(true);
+                        toggleFields(true);
                         String uid = db.getAuthUser().getUid();
                         User user = new User(uid, username, email);
 
@@ -88,6 +96,7 @@ public class Register extends AppCompatActivity {
                                         Toast.makeText(context, "Account created!", Toast.LENGTH_SHORT).show();
                                         startActivity(new Intent(this, Home.class));
                                         finish();
+                                        overridePendingTransition(0, 0);
                                     }
                                 },
                                 (childError) -> {
@@ -97,7 +106,7 @@ public class Register extends AppCompatActivity {
                     }
                 },
                 (error) -> {
-                    signUp.setEnabled(true);
+                    toggleFields(false);
                     Log.e("Register", error.getMessage(), error);
                     Toast.makeText(context, "Sorry! An error has occurred..", Toast.LENGTH_LONG).show();
                 });
