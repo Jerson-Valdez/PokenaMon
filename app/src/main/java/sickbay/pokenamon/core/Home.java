@@ -28,13 +28,14 @@ import sickbay.pokenamon.R;
 import sickbay.pokenamon.auth.Login;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
-import sickbay.pokenamon.helper.BottomNavHelper;
+import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.model.User;
 import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
 import sickbay.pokenamon.system.home.HorizontalSpacingItemDecoration;
 import sickbay.pokenamon.system.home.PokemonListAdapter;
 import sickbay.pokenamon.util.Localizer;
+import sickbay.pokenamon.util.SecurePreferences;
 
 public class Home extends AppCompatActivity {
     ImageView lastBattledPokemon;
@@ -51,7 +52,6 @@ public class Home extends AppCompatActivity {
 
         init();
         fetchUser();
-
         fetchUserRecentSummons();
     }
 
@@ -80,18 +80,27 @@ public class Home extends AppCompatActivity {
         LinearLayout btnCollection = findViewById(R.id.btnQuickCollection);
 
         btnLogout.setOnClickListener(v -> {
+            SecurePreferences prefs = new SecurePreferences(this, "credentials", true);
+            prefs.clear();
+
             Intent intent = new Intent(this, Login.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
             DB.getAuthInstance(this).signOutAuthUser();
             startActivity(intent);
             finish();
+            overridePendingTransition(0, 0);
+        });
+
+        changePokemon.setOnClickListener(v -> {
+            startActivity(new Intent(this, Collection.class));
+            overridePendingTransition(0, 0);
         });
 
         btnSummon.setOnClickListener(v -> {
             startActivity(new Intent(this, Gacha.class));
-            overridePendingTransition(0, 0);
             finish();
+            overridePendingTransition(0, 0);
         });
 
         btnCollection.setOnClickListener(v -> {
@@ -99,7 +108,7 @@ public class Home extends AppCompatActivity {
             overridePendingTransition(0, 0);
         });
 
-        BottomNavHelper.setup(this);
+        Navigation.setup(this);
     }
 
     private void fetchUser() {
@@ -128,13 +137,14 @@ public class Home extends AppCompatActivity {
         }
 
         String username = UserManager.getInstance().getUser().getUsername();
-        PokemonDTO pokemon = UserManager.getInstance().getUser().getLastBattledPokemon();
+        BattlePokemon pokemon = UserManager.getInstance().getUser().getLastBattledPokemon();
 
         txtUsername.setText(Localizer.toTitleCase(username));
 
         if (pokemon != null) {
             lastBattledPokemonName.setText(pokemon.getName());
             Glide.with(this)
+                    .load(pokemon.getSprite().getFront())
                     .load(pokemon.getSprite().getFrontFallback())
                     .into(lastBattledPokemon);
         }

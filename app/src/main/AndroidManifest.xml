@@ -26,7 +26,13 @@
         </activity>
         <activity
             android:name=".core.Battle"
-            android:exported="false">
+            android:exported="false"
+            android:launchMode="singleTop">
+        </activity>
+        <activity
+            android:name=".core.BattleScene"
+            android:exported="false"
+            android:launchMode="singleTask">
         </activity>
         <activity
             android:name=".core.Collection"

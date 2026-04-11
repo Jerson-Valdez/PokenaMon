@@ -10,18 +10,20 @@ import java.util.Set;
 import sickbay.pokenamon.system.arena.enums.Ailment;
 
 public class ArenaRegistry {
-    // Got their own moves
-    public static final Set<String> SPECIAL_POKEMONS = new HashSet<>(List.of(
-       "ditto",
-       "unown",
-            "smeargle"
-    ));
+    public static final int POKEDEX_ENTRY_COUNT = 1025;
+
+    public static final String SINGLE_HP_POKEMON = "shedinja";
 
     public static final Set<String> BLACKLISTED_MOVES = new HashSet<>(List.of(
             "attract", // causes Infatuation which is permanent until the user is out of field (not that broken since 50% chance of infatuated pokemon missing)
             "baton-pass", // useless
             "helping-hand", // useless
-            "trick-room" // too much
+            "trick-room", // too much
+
+            // moves by ditto, unown, and smeargle (hassle to implement)
+            "transform",
+            "tri-attack",
+            "sketch"
     ));
 
     public static final Set<String> ALWAYS_HIT = new HashSet<>(List.of(
@@ -319,8 +321,6 @@ public class ArenaRegistry {
             "fake-out", "first-impression"
     ));
 
-
-    public static boolean isSpecialPokemon(String name) { return SPECIAL_POKEMONS.contains(name); }
 
     public static boolean isBlacklisted(BattleMove move) { return BLACKLISTED_MOVES.contains(move.name); }
 

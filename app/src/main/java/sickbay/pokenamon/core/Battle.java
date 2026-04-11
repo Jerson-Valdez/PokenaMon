@@ -1,15 +1,17 @@
 package sickbay.pokenamon.core;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-
 import java.util.Arrays;
 import java.util.Random;
 
@@ -22,102 +24,105 @@ import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
 import sickbay.pokenamon.system.gacha.GetBattlePokemonListener;
 import sickbay.pokenamon.system.gacha.GetGachaPokemonListener;
+import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.util.Localizer;
 
 public class Battle extends AppCompatActivity {
-    ImageView playerSprite, enemySprite;
-    TextView playerName, enemyName, playerLevel, enemyLevel, playerHp, enemyHp, move1, move2, move3, move4, move1pp, move2pp, move3pp, move4pp;
+    LinearLayout noSelectedPokemonDisplay, selectedPokemonDisplay, selectPokemonButton, battleButtons, battleButton, forfeitButton, continueButton;
+    ImageView playerSprite;
+    TextView initial, usernameField, dailyStreak, highestFloor, shardsEarned, playerName, playerHp, playerLevel;
+    ProgressBar playerExpBar, playerHpBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.layout_battle);
+        setContentView(R.layout.layout_battle_dashboard);
 
-        playerSprite = findViewById(R.id.playerPokemon);
-        enemySprite = findViewById(R.id.enemyPokemon);
-        playerName = findViewById(R.id.playerPokemonName);
-        enemyName = findViewById(R.id.enemyPokemonName);
-        enemyLevel = findViewById(R.id.enemyPokemonLevel);
-        playerLevel = findViewById(R.id.playerPokemonLevel);
-        move1 = findViewById(R.id.move1Name);
-        move2 = findViewById(R.id.move2Name);
-        move3 = findViewById(R.id.move3Name);
-        move4 = findViewById(R.id.move4Name);
-        move1pp = findViewById(R.id.move1Pp);
-        move2pp = findViewById(R.id.move2Pp);
-        move3pp = findViewById(R.id.move3Pp);
-        move4pp = findViewById(R.id.move4Pp);
+        BackgroundMusicManager.getInstance(this).play(R.raw.home_theme);
 
-        BackgroundMusicManager.getInstance(this).play(R.raw.battle_theme);
-
-        PokemonDTO pokemonDTO = getIntent().getParcelableExtra("pokemon");
-
-        PokeAPIManager.getInstance(this).getPokemonDetails(new BattlePokemon(pokemonDTO.toPokemon()), new GetBattlePokemonListener() {
-            @Override
-            public void onComplete(BattlePokemon pokemon) {
-                Log.d("TRY", pokemon.getBattleMoves().toString() + " " + Arrays.toString(pokemon.getBattleMoves()) + " " + String.valueOf(pokemon.getSprite()));
-
-                Glide.with(Battle.this)
-                        .asGif()
-                        .load(pokemon.getSprite().getBack())
-                        .into(playerSprite);
-
-                playerName.setText(Localizer.formatPokemonName(pokemon.getName()));
-                playerLevel.setText("Lv. " + pokemon.getLevel());
-                ;
-
-                BattleMove[] moves = pokemon.getBattleMoves();
-                if (moves.length > 0) move1.setText(Localizer.toTitleCase(moves[0].getName()));
-                if (moves.length > 1) move2.setText(Localizer.toTitleCase(moves[1].getName()));
-                if (moves.length > 2) move3.setText(Localizer.toTitleCase(moves[2].getName()));
-                if (moves.length > 3) move4.setText(Localizer.toTitleCase(moves[3].getName()));
-            }
-
-            @Override
-            public void onError(String message) {
-                Log.e("BattlePokemonHydration", message);
-            }
-        }, false);
-
-        engageEnemy();
+        init();
+        hydrateViews();
     }
 
-    private void engageEnemy() {
-        PokeAPIManager.getInstance(this).getGachaPokemon(new Random().nextInt(1025) + 1,
-                new GetGachaPokemonListener() {
-                    @Override
-                    public void onComplete(Pokemon pokemon) {
-                        BattlePokemon enemyPokemon = new BattlePokemon(pokemon);
-                        enemyPokemon.setLevel(new Random().nextInt(99) + 1);
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        hydrateViews();
+    }
 
-                        PokeAPIManager.getInstance(Battle.this).getPokemonDetails(enemyPokemon, new GetBattlePokemonListener() {
-                            @Override
-                            public void onComplete(BattlePokemon pokemon) {
-                                Log.d("POKEMON NULL", String.valueOf(pokemon == null));
+    private void init() {
+        noSelectedPokemonDisplay = findViewById(R.id.noBattlePokemonSelectedDisplay);
+        selectedPokemonDisplay = findViewById(R.id.selectedPokemonDisplay);
+        selectPokemonButton = findViewById(R.id.selectPokemon);
+        initial = findViewById(R.id.initial);
+        usernameField = findViewById(R.id.userNameField);
+        dailyStreak = findViewById(R.id.dailyStreak);
+        highestFloor = findViewById(R.id.highestFloor);
+        shardsEarned = findViewById(R.id.earnedShardsByBattling);
+        playerSprite = findViewById(R.id.selectedPokemonSprite);
+        playerName = findViewById(R.id.selectedPokemonName);
+        playerLevel = findViewById(R.id.selectedPokemonLevel);
+        playerHp = findViewById(R.id.selectedPokemonMaxHp);
+        playerHpBar = findViewById(R.id.selectedPokemonMaxHpBar);
+        playerExpBar = findViewById(R.id.selectedPokemonExpBar);
+        battleButtons = findViewById(R.id.battleButtons);
+        battleButton = findViewById(R.id.battleButton);
+        forfeitButton = findViewById(R.id.forfeitButton);
+        continueButton = findViewById(R.id.continueButton);
 
-                                Glide.with(Battle.this)
-                                        .asGif()
-                                        .load(pokemon.getSprite().getFront())
-                                        .error(pokemon.getSprite().getFrontFallback())
-                                        .into(enemySprite);
+        battleButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, BattleScene.class);
+            intent.putExtra("player", UserManager.getInstance().getSelectedPokemonForBattle());
+            startActivity(intent);
+        });
 
-                                enemyName.setText(Localizer.formatPokemonName(pokemon.getName()));
-                                enemyLevel.setText("Lv. " + pokemon.getLevel());
-                            }
+        Navigation.setup(this);
+    }
 
-                            @Override
-                            public void onError(String message) {
-                                Log.e("BattlePokemonHydration", message);
-                            }
-                        }, true);
-                    }
+    private void hydrateViews() {
+        initial.setText(UserManager.getInstance().getUser().getUsername().substring(0,1).toUpperCase());
+        usernameField.setText(Localizer.toTitleCase(UserManager.getInstance().getUser().getUsername()));
+        dailyStreak.setText(String.format("%,d", UserManager.getInstance().getUser().getStreak()));
+        highestFloor.setText(String.format("%,d", UserManager.getInstance().getUser().getHighestWin()));
+        shardsEarned.setText(String.format("%,d", UserManager.getInstance().getUser().getEarnedShardsByBattling()));
 
-                    @Override
-                    public void onError(String message) {
-                        Log.e("EnemyCreation", message);
-                    }
-                }
-        );
+        hydrateSelectedPokemon();
+    }
+
+    private void hydrateSelectedPokemon() {
+        if (UserManager.getInstance().getSelectedPokemonForBattle() != null) {
+            BattlePokemon selectedPokemon = new BattlePokemon(UserManager.getInstance().getSelectedPokemonForBattle().toPokemon());
+
+            noSelectedPokemonDisplay.setVisibility(LinearLayout.GONE);
+            selectedPokemonDisplay.setVisibility(LinearLayout.VISIBLE);
+
+            playerName.setText(Localizer.formatPokemonName(selectedPokemon.getName()));
+            playerLevel.setText(String.format("Lv. %02d", selectedPokemon.getLevel()));
+
+            playerHpBar.setMax(selectedPokemon.getTotalHp());
+            playerHpBar.setProgress(selectedPokemon.getCurrentHp());
+
+            playerHp.setText(String.format("%,d / %,d", selectedPokemon.getCurrentHp(), selectedPokemon.getTotalHp()));
+
+            playerExpBar.setMax((selectedPokemon.getLevel() > 1 ? selectedPokemon.getLevel() ^ 3 : 9));
+            playerExpBar.setProgress(selectedPokemon.getExp());
+
+            Glide.with(this)
+                    .load(selectedPokemon.getSprite().getFront())
+                    .error(selectedPokemon.getSprite().getFrontFallback())
+                    .into(playerSprite);
+
+            battleButtons.setVisibility(LinearLayout.VISIBLE);
+        } else {
+            noSelectedPokemonDisplay.setVisibility(LinearLayout.VISIBLE);
+            selectedPokemonDisplay.setVisibility(LinearLayout.GONE);
+
+            selectPokemonButton.setOnClickListener(v -> {
+                startActivity(new Intent(this, Collection.class));
+            });
+
+            battleButtons.setVisibility(LinearLayout.GONE);
+        }
     }
 }

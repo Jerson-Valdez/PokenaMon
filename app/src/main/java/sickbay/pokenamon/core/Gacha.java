@@ -27,9 +27,7 @@ import sickbay.pokenamon.R;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
-import sickbay.pokenamon.helper.BottomNavHelper;
 import sickbay.pokenamon.model.Pokemon;
-import sickbay.pokenamon.model.User;
 import sickbay.pokenamon.network.PokeAPIManager;
 import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
 import sickbay.pokenamon.system.gacha.FetchGachaListener;
@@ -83,11 +81,10 @@ public class Gacha extends AppCompatActivity {
         tvCoins = findViewById(R.id.coins);
 
         tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins()));
-        BottomNavHelper.setup(this);
+        Navigation.setup(this);
     }
 
     private void action() {
-
         draw10x.setOnClickListener(v -> {
             if (isFinishing() || isDestroyed()) return;
 
@@ -118,16 +115,15 @@ public class Gacha extends AppCompatActivity {
         UserManager.getInstance().updateCoins(-price)
                 .addOnCompleteListener(Gacha.this, (task) -> {
                     if (task.isSuccessful()) {
-                        tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins()));
-
                         for (int i = 0; i < chosenRand.length; i++) {
                             chosenRand[i] = .1 + (101 - .1) * rand.nextDouble();
-
                         }
 
                         animatePokeballAndFetch(chosenRand, new FetchGachaListener() {
                             @Override
                             public void onComplete(ArrayList<PokemonDTO> results) {
+                                tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins()));
+
                                 draw1x.setEnabled(true);
                                 draw10x.setEnabled(true);
 
@@ -139,6 +135,7 @@ public class Gacha extends AppCompatActivity {
                                 intent.putExtras(bundle);
 
                                 startActivity(intent);
+                                overridePendingTransition(0, 0);
                             }
 
                             @Override

@@ -1,17 +1,22 @@
 package sickbay.pokenamon.core;
 
+import android.content.Intent;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +37,11 @@ public class PokemonView extends AppCompatActivity {
     private TextView backButton, sellButton, entry, name, rarity, level, exp, type1, type2, move1Name, move1Pp, move2Name, move2Pp, move3Name, move3Pp, move4Name, move4Pp, statHp, statAttack, statDefense, statSpAttack, statSpDefense, statSpeed;
     private ProgressBar levelBar, hpBar, attackBar, defenseBar, spAttackBar, spDefenseBar, speedBar;
     private ImageView sprite, move1Type, move2Type, move3Type, move4Type;
-    private LinearLayout move1, move2, move3, move4;
-    private boolean disableReminder;
+    private LinearLayout move1, move2, move3, move4, selectPokemon;
+    private PokemonDTO pokemon;
+    private List<BattleMove> queriedMoves;
+
+    MediaPlayer cryPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,34 +49,10 @@ public class PokemonView extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.layout_pokemon_view);
 
-        PokemonDTO pokemon = Objects.requireNonNull(getIntent().getExtras()).getParcelable("pokemon");
-
-        List<BattleMove> queriedMoves = new ArrayList<>();
+        pokemon = Objects.requireNonNull(getIntent().getExtras()).getParcelable("pokemon");
+        queriedMoves = new ArrayList<>();
 
         init();
-
-        backButton.setOnClickListener(v -> {
-            finish();
-        });
-
-        sellButton.setOnClickListener(v -> {
-            UserManager.getInstance().sellPokemon(this, pokemon, this::finish);
-        });
-
-        for (String stringMove: pokemon.getMoves()) {
-            PokeAPIManager.getInstance(getApplicationContext()).getPokemonMove(stringMove, new GetBattleMoveListener() {
-                @Override
-                public void onComplete(BattleMove move) {
-                    queriedMoves.add(move);
-                    hydrateViews(pokemon, queriedMoves);
-                }
-
-                @Override
-                public void onError(String message) {
-                    Log.e("PokemonView", message);
-                }
-            });
-        }
     }
 
     private void init() {
@@ -107,6 +91,52 @@ public class PokemonView extends AppCompatActivity {
         statSpAttack = findViewById(R.id.pokemon_view_spAttack);
         statSpDefense = findViewById(R.id.pokemon_view_spDefense);
         statSpeed = findViewById(R.id.pokemon_view_speed);
+        selectPokemon = findViewById(R.id.pokemon_view_selectPokemon);
+        cryPlayer = new MediaPlayer();
+        cryPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+        backButton.setOnClickListener(v -> {
+            finish();
+            overridePendingTransition(0, 0);
+        });
+
+        sellButton.setOnClickListener(v -> {
+            UserManager.getInstance().sellPokemon(this, pokemon, () -> { finish(); overridePendingTransition(0, 0);});
+        });
+
+        selectPokemon.setOnClickListener(v -> {
+            UserManager.getInstance().setSelectedPokemonForBattle(pokemon);
+            startActivity(new Intent(this, Battle.class));
+            finish();
+            overridePendingTransition(0,0);
+            Toast.makeText(this, "Selected Pokemon for battle", Toast.LENGTH_SHORT).show();
+        });
+
+        sprite.setOnClickListener(v -> {
+            try {
+                cryPlayer.reset();
+                cryPlayer.setDataSource(pokemon.getCry());
+                cryPlayer.prepare();
+                cryPlayer.start();
+            } catch (IOException e) {
+                Log.e("GachaPull", e.getMessage(), e);
+            }
+        });
+
+        for (String stringMove: pokemon.getMoves()) {
+            PokeAPIManager.getInstance(getApplicationContext()).getPokemonMove(stringMove, new GetBattleMoveListener() {
+                @Override
+                public void onComplete(BattleMove move) {
+                    queriedMoves.add(move);
+                    hydrateViews(pokemon, queriedMoves);
+                }
+
+                @Override
+                public void onError(String message) {
+                    Log.e("PokemonView", message);
+                }
+            });
+        }
     }
 
     private void hydrateViews(PokemonDTO pokemon, List<BattleMove> queriedMoves) {
@@ -135,7 +165,8 @@ public class PokemonView extends AppCompatActivity {
         PokemonListAdapter.setTypeStrokeColor(type1, pokemonType1);
 
         Glide.with(this)
-                .load(pokemon.getSprite().getFrontFallback())
+                .load(pokemon.getSprite().getFront())
+                .error(pokemon.getSprite().getFrontFallback())
                 .into(sprite);
 
         if (pokemonType2 != null) { type2.setText(pokemonType2); PokemonListAdapter.setTypeStrokeColor(type2, pokemonType2); }
@@ -184,5 +215,7 @@ public class PokemonView extends AppCompatActivity {
             bar.post(() -> {bar.setMax(255); bar.setProgress(stat.getValue(), true);});
             label.setText(String.valueOf(stat.getValue()));
         }
+
+        ((TextView) selectPokemon.getChildAt(0)).setText("Battle with " + Localizer.formatPokemonName(pokemonName));
     }
 }

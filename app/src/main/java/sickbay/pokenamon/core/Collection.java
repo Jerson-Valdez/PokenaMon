@@ -3,7 +3,6 @@ package sickbay.pokenamon.core;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -17,32 +16,40 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
-import sickbay.pokenamon.helper.BottomNavHelper;
 import sickbay.pokenamon.system.home.GridSpacingItemDecoration;
 import sickbay.pokenamon.system.home.PokemonListAdapter;
 import sickbay.pokenamon.util.Localizer;
 
 public class Collection extends AppCompatActivity {
-    TextView txtInitial, txtUsername, txtPokeCount, txtWins, txtStreak;
+    TextView txtInitial, txtUsername, txtPokeCount, txtPokeSold, txtShardsEarned;
     CheckBox nameSort, levelSort, raritySort, dateSort;
-    Button btnLogout;
     RecyclerView recyclerViewCollection;
     List<PokemonDTO> myPokemonListOld;
     List<PokemonDTO> myPokemonList;
-    private CheckBox activeFilter;
 
-    private int primaryFilterId = -1;
+    private int nameSortCount = 0;
+    private int levelSortCount = 0;
+    private int raritySortCount = 0;
+    private int dateSortCount = 0;
+
+    LinkedList<CheckBox> activeFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_collection);
+
+        BackgroundMusicManager.getInstance(this).play(R.raw.home_theme);
 
         init();
         fetchUserProfile();
@@ -53,6 +60,7 @@ public class Collection extends AppCompatActivity {
     protected void onRestart() {
         super.onRestart();
 
+        fetchUserProfile();
         loadAllMyPokemon();
     }
 
@@ -61,9 +69,8 @@ public class Collection extends AppCompatActivity {
         txtInitial = findViewById(R.id.username_initial);
         txtUsername = findViewById(R.id.username);
         txtPokeCount = findViewById(R.id.pokemon_count);
-        txtWins = findViewById(R.id.wins);
-        txtStreak = findViewById(R.id.streak);
-        btnLogout = findViewById(R.id.logout);
+        txtPokeSold = findViewById(R.id.soldPokemons);
+        txtShardsEarned = findViewById(R.id.earnedShardsBySelling);
         nameSort = findViewById(R.id.sortByAlphabet);
         levelSort = findViewById(R.id.sortByLevel);
         raritySort = findViewById(R.id.sortByRarity);
@@ -74,71 +81,113 @@ public class Collection extends AppCompatActivity {
         recyclerViewCollection.setLayoutManager(new GridLayoutManager(this, 2));
         recyclerViewCollection.addItemDecoration(new GridSpacingItemDecoration(2, 16, false));
 
+        activeFilter = new LinkedList<>();
+
         nameSort.setOnCheckedChangeListener((button, isChecked) -> {
-            if (isChecked) {
-                if (primaryFilterId == -1) primaryFilterId = button.getId();
+            nameSortCount = nameSortCount + 1 < 3 ? nameSortCount + 1 : 0;
+            if (nameSortCount > 0) {
                 nameSort.setBackground(getResources().getDrawable(R.drawable.rectangle_white, null));
                 nameSort.setTextColor(getResources().getColor(R.color.background, null));
+
+                if (!activeFilter.contains(nameSort)) {
+                    if (activeFilter.size() >= 2) activeFilter.poll();
+                    activeFilter.add(nameSort);
+                }
+
+            }
+            if (nameSortCount == 1) {
+                nameSort.setText("Name: ↑");
+            } else if (nameSortCount == 2) {
                 nameSort.setText("Name: ↓");
             } else {
-                if (primaryFilterId == button.getId()) primaryFilterId = -1;
                 nameSort.setBackground(getResources().getDrawable(R.drawable.rectangle, null));
                 nameSort.setTextColor(getResources().getColor(R.color.textVariant, null));
-                nameSort.setText("Name: ↑");
+                nameSort.setText("Name");
+                activeFilter.remove(nameSort);
             }
             sort();
             snapRecyclerViewToStart();
         });
 
         levelSort.setOnCheckedChangeListener((button, isChecked) -> {
-            if (isChecked) {
-                if (primaryFilterId == -1) primaryFilterId = button.getId();
+            levelSortCount = levelSortCount + 1 < 3 ? levelSortCount + 1 : 0;
+            if (levelSortCount > 0) {
                 levelSort.setBackground(getResources().getDrawable(R.drawable.rectangle_white, null));
                 levelSort.setTextColor(getResources().getColor(R.color.background, null));
+
+                if (!activeFilter.contains(levelSort)) {
+                    if (activeFilter.size() >= 2) activeFilter.poll();
+                    activeFilter.add(levelSort);
+                }
+            }
+            if (levelSortCount == 1) {
+                levelSort.setText("Level: ↑");
+            } else if (levelSortCount == 2) {
                 levelSort.setText("Level: ↓");
             } else {
-                if (primaryFilterId == button.getId()) primaryFilterId = -1;
                 levelSort.setBackground(getResources().getDrawable(R.drawable.rectangle, null));
                 levelSort.setTextColor(getResources().getColor(R.color.textVariant, null));
-                levelSort.setText("Level: ↑");
+                levelSort.setText("Level");
+
+                activeFilter.remove(levelSort);
             }
             sort();
             snapRecyclerViewToStart();
         });
 
         raritySort.setOnCheckedChangeListener((button, isChecked) -> {
-            if (isChecked) {
-                if (primaryFilterId == -1) primaryFilterId = button.getId();
+            raritySortCount = raritySortCount + 1 < 3 ? raritySortCount + 1 : 0;
+            if (raritySortCount > 0) {
                 raritySort.setBackground(getResources().getDrawable(R.drawable.rectangle_white, null));
                 raritySort.setTextColor(getResources().getColor(R.color.background, null));
+
+                if (!activeFilter.contains(raritySort)) {
+                    if (activeFilter.size() >= 2) activeFilter.poll();
+                    activeFilter.add(raritySort);
+                }
+            }
+            if (raritySortCount == 1) {
+                raritySort.setText("Rarity: ↑");
+            } else if (raritySortCount == 2) {
                 raritySort.setText("Rarity: ↓");
             } else {
-                if (primaryFilterId == button.getId()) primaryFilterId = -1;
                 raritySort.setBackground(getResources().getDrawable(R.drawable.rectangle, null));
                 raritySort.setTextColor(getResources().getColor(R.color.textVariant, null));
-                raritySort.setText("Rarity: ↑");
+                raritySort.setText("Rarity");
+
+                activeFilter.remove(raritySort);
             }
             sort();
             snapRecyclerViewToStart();
         });
 
         dateSort.setOnCheckedChangeListener((button, isChecked) -> {
-            if (isChecked) {
-                if (primaryFilterId == -1) primaryFilterId = button.getId();
+            dateSortCount = dateSortCount + 1 < 3 ? dateSortCount + 1 : 0;
+            if (dateSortCount > 0) {
                 dateSort.setBackground(getResources().getDrawable(R.drawable.rectangle_white, null));
                 dateSort.setTextColor(getResources().getColor(R.color.background, null));
+
+                if (!activeFilter.contains(dateSort)) {
+                    if (activeFilter.size() >= 2) activeFilter.poll();
+                    activeFilter.add(dateSort);
+                }
+            }
+            if (dateSortCount == 1) {
+                dateSort.setText("Date: ↑");
+            } else if (dateSortCount == 2) {
                 dateSort.setText("Date: ↓");
             } else {
-                if (primaryFilterId == button.getId()) primaryFilterId = -1;
                 dateSort.setBackground(getResources().getDrawable(R.drawable.rectangle, null));
                 dateSort.setTextColor(getResources().getColor(R.color.textVariant, null));
-                dateSort.setText("Date: ↑");
+                dateSort.setText("Date");
+
+                activeFilter.remove(dateSort);
             }
             sort();
             snapRecyclerViewToStart();
         });
 
-        BottomNavHelper.setup(this);
+        Navigation.setup(this);
     }
 
     private void snapRecyclerViewToStart() {
@@ -157,75 +206,48 @@ public class Collection extends AppCompatActivity {
         if (myPokemonList == null || myPokemonList.isEmpty()) return;
 
         myPokemonList.sort((p1, p2) -> {
-            int result = 0;
+            int res = 0;
 
-            if (primaryFilterId == R.id.sortByLevel) {
-                result = levelSort.isChecked() ? Integer.compare(p2.getLevel(), p1.getLevel()) : Integer.compare(p1.getLevel(), p2.getLevel());
-            } else if (primaryFilterId == R.id.sortByRarity) {
-                result = raritySort.isChecked() ? Integer.compare(p2.getRarity(), p1.getRarity()) : Integer.compare(p1.getRarity(), p2.getRarity());
-            } else if (primaryFilterId == R.id.sortByDate) {
-                result = dateSort.isChecked() ? Long.compare(p2.getSummonedAt(), p1.getSummonedAt()) : Long.compare(p1.getSummonedAt(), p2.getSummonedAt());
-            } else if (primaryFilterId == R.id.sortByAlphabet) {
-                result = nameSort.isChecked() ? p2.getName().compareToIgnoreCase(p1.getName()) : p1.getName().compareToIgnoreCase(p2.getName());
+            for (CheckBox cb: activeFilter) {
+                if (cb == nameSort) {
+                    res = nameSortCount == 2
+                            ? p2.getName().compareToIgnoreCase(p1.getName())
+                            : p1.getName().compareToIgnoreCase(p2.getName());
+                } else if (cb == levelSort) {
+                    res = levelSortCount == 2
+                            ? Integer.compare(p2.getLevel(), p1.getLevel())
+                            : Integer.compare(p1.getLevel(), p2.getLevel());
+                } else if (cb == raritySort) {
+                    res = raritySortCount == 2
+                            ? Integer.compare(p2.getRarity(), p1.getRarity())
+                            : Integer.compare(p1.getRarity(), p2.getRarity());
+                } else if (cb == dateSort) {
+                    res = dateSortCount == 2
+                            ? Long.compare(p2.getSummonedAt(), p1.getSummonedAt())
+                            : Long.compare(p1.getSummonedAt(), p2.getSummonedAt());
+                }
+
+                if (res != 0) return res;
             }
-
-            if (result != 0) return result;
-
-            if (p1.getLevel() != p2.getLevel()) {
-                return levelSort.isChecked() ? Integer.compare(p2.getLevel(), p1.getLevel()) : Integer.compare(p1.getLevel(), p2.getLevel());
-            }
-
-            if (p1.getRarity() != p2.getRarity()) {
-                return raritySort.isChecked() ? Integer.compare(p2.getRarity(), p1.getRarity()) : Integer.compare(p1.getRarity(), p2.getRarity());
-            }
-
-            if (p1.getSummonedAt() != p2.getSummonedAt()) {
-                return dateSort.isChecked() ? Long.compare(p2.getSummonedAt(), p1.getSummonedAt()) : Long.compare(p1.getSummonedAt(), p2.getSummonedAt());
-            }
-            return nameSort.isChecked() ? p2.getName().compareToIgnoreCase(p1.getName()) : p1.getName().compareToIgnoreCase(p2.getName());
+            return 0;
         });
 
         if (recyclerViewCollection.getAdapter() != null) {
             recyclerViewCollection.getAdapter().notifyDataSetChanged();
         }
     }
-    private int sortByName (PokemonDTO p1, PokemonDTO p2) {
-        return nameSort.isChecked() ?
-                p2.getName().compareToIgnoreCase(p1.getName()) :
-                p1.getName().compareToIgnoreCase(p2.getName());
-    }
-
-    private int sortByLevel (PokemonDTO p1, PokemonDTO p2) {
-        return levelSort.isChecked() ?
-                Integer.compare(p2.getLevel(), p1.getLevel()) :
-                Integer.compare(p1.getLevel(), p2.getLevel());
-    }
-
-    private int sortByRarity (PokemonDTO p1, PokemonDTO p2) {
-        return raritySort.isChecked() ?
-                Integer.compare(p2.getRarity(), p1.getRarity()) :
-                Integer.compare(p1.getRarity(), p2.getRarity());
-    }
-
-    private int sortByDate (PokemonDTO p1, PokemonDTO p2) {
-        return dateSort.isChecked() ?
-                Long.compare(p2.getSummonedAt(), p1.getSummonedAt()) :
-                Long.compare(p1.getSummonedAt(), p2.getSummonedAt());
-    }
-
-
 
     private void fetchUserProfile() {
         int pokemonCount = UserManager.getInstance().getUser().getPokemonCount();
-        int wins = UserManager.getInstance().getUser().getWins();
-        int streak = UserManager.getInstance().getUser().getStreak();
+        int pokemonSold = UserManager.getInstance().getUser().getPokemonSold();
+        int earnings = UserManager.getInstance().getUser().getEarnedShardsBySelling();
         String username = UserManager.getInstance().getUser().getUsername();
 
         txtUsername.setText(Localizer.toTitleCase(username));
         txtInitial.setText(Localizer.toTitleCase(username).substring(0,1));
         txtPokeCount.setText(String.format("%,d", pokemonCount));
-        txtWins.setText(String.format("%,d", wins));
-        txtStreak.setText(String.format("%,d", streak));
+        txtPokeSold.setText(String.format("%,d", pokemonSold));
+        txtShardsEarned.setText(String.format("%,d", earnings));
     }
 
     private void loadAllMyPokemon() {

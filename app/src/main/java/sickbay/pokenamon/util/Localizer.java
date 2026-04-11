@@ -37,15 +37,20 @@ public class Localizer {
 
         if (parts.length >= 2) {
             List<String> forms = Arrays.asList("Mega", "Gigantamax", "Primal", "Alolan", "Galarian");
+            List<String> weightClass = Arrays.asList("average", "small", "large", "super");
 
             if (forms.contains(parts[1])) {
                 sb.append(parts[1]).append(" ").append(parts[0]);
             } else {
                 String second = parts[1].toLowerCase();
-                if (second.equals("f") || second.equals("m")) {
+                String appender = " ";
+                if (second.equals("f") || second.equals("m") || weightClass.contains(second)) {
                     parts[1] = "";
+                } else if (second.length() <= 2) {
+                    appender = "-";
+                    parts[1] = parts[1].toLowerCase();
                 }
-                sb.append(parts[0]).append(" ").append(parts[1]);
+                sb.append(parts[0]).append(appender).append(parts[1]);
             }
 
             if (parts.length >= 3) {
@@ -75,5 +80,9 @@ public class Localizer {
 
     public static String formatEnumString(String enumString) {
         return enumString.toUpperCase().replaceAll("-", "_");
+    }
+
+    public static String formatEnum(String enumString) {
+        return toTitleCase(enumString.toUpperCase().replaceAll("_", enumString.contains("SP") ? ". " : " "));
     }
 }
