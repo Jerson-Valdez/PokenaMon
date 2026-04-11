@@ -31,7 +31,7 @@ import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.model.User;
-import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
+import sickbay.pokenamon.system.home.BackgroundMusicManager;
 import sickbay.pokenamon.system.home.HorizontalSpacingItemDecoration;
 import sickbay.pokenamon.system.home.PokemonListAdapter;
 import sickbay.pokenamon.util.Localizer;
@@ -92,6 +92,11 @@ public class Home extends AppCompatActivity {
             overridePendingTransition(0, 0);
         });
 
+        startBattle.setOnClickListener(v -> {
+            startActivity(new Intent(this, Battle.class));
+            overridePendingTransition(0, 0);
+        });
+
         changePokemon.setOnClickListener(v -> {
             startActivity(new Intent(this, Collection.class));
             overridePendingTransition(0, 0);
@@ -137,12 +142,12 @@ public class Home extends AppCompatActivity {
         }
 
         String username = UserManager.getInstance().getUser().getUsername();
-        BattlePokemon pokemon = UserManager.getInstance().getUser().getLastBattledPokemon();
+        PokemonDTO pokemon = UserManager.getInstance().getUser().getLastBattledPokemon();
 
         txtUsername.setText(Localizer.toTitleCase(username));
 
         if (pokemon != null) {
-            lastBattledPokemonName.setText(pokemon.getName());
+            lastBattledPokemonName.setText(Localizer.formatPokemonName(pokemon.getName()));
             Glide.with(this)
                     .load(pokemon.getSprite().getFront())
                     .load(pokemon.getSprite().getFrontFallback())

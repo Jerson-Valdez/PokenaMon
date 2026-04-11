@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.db.dto.PokemonDTO;
-import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
+import sickbay.pokenamon.system.home.BackgroundMusicManager;
 import sickbay.pokenamon.system.home.PokemonListAdapter;
 import sickbay.pokenamon.util.Localizer;
 
@@ -216,6 +216,7 @@ public class GachaPull extends AppCompatActivity {
         cryPlayer = null;
 
         finish();
+        overridePendingTransition(0,0);
     }
 
     private void nextShowcase() {

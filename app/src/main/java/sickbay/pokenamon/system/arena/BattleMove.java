@@ -10,25 +10,26 @@ import sickbay.pokenamon.system.arena.enums.Type;
 import sickbay.pokenamon.system.arena.model.StatBuff;
 
 public class BattleMove {
-    String name;
-    int power;
-    DamageClass damageClass;
-    Type type;
-    TargetType targetType;
-    int accuracy;
-    int totalPp;
-    int currentPp;
-    int priority;
-    int minimumHits;
-    int maximumHits;
-    int minimumTurns;
-    int maximumTurns;
-
-    String rawAilment;
-    Ailment ailment;
-    int ailmentChance;
-    int flinchChance; // flinch TO the target, not the user
-    int statChance;
+    private String name;
+    private int power;
+    private DamageClass damageClass;
+    private Type type;
+    private TargetType targetType;
+    private int accuracy;
+    private int totalPp;
+    private int currentPp;
+    private int priority;
+    private int minimumHits;
+    private int maximumHits;
+    private int minimumTurns;
+    private int maximumTurns;
+    private String rawAilment;
+    private Ailment ailment;
+    private int ailmentChance;
+    private int flinchChance; // flinch TO the target, not the user
+    private int statChance;
+    private boolean disabled;
+    private int disabledTurns;
 
     private List<StatBuff> statBuffs = new ArrayList<>();
 
@@ -199,4 +200,12 @@ public class BattleMove {
 
     public List<StatBuff> getStatBuffs() { return statBuffs; }
     public void setStatBuffs(List<StatBuff> statBuffs) { this.statBuffs = statBuffs; }
+
+    public boolean isDisabled() { return disabled; }
+
+    public void setDisabled(boolean disabled) { this.disabled = disabled; }
+
+    public int getDisabledTurns() { return disabledTurns; }
+
+    public void setDisabledTurns(int turns) { this.disabledTurns = turns; }
 }

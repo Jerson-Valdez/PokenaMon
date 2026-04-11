@@ -2,7 +2,6 @@ package sickbay.pokenamon.core;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -12,18 +11,11 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-import java.util.Arrays;
-import java.util.Random;
 
 import sickbay.pokenamon.R;
-import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.Pokemon;
-import sickbay.pokenamon.network.PokeAPIManager;
-import sickbay.pokenamon.system.arena.BattleMove;
 import sickbay.pokenamon.system.arena.BattlePokemon;
-import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
-import sickbay.pokenamon.system.gacha.GetBattlePokemonListener;
-import sickbay.pokenamon.system.gacha.GetGachaPokemonListener;
+import sickbay.pokenamon.system.home.BackgroundMusicManager;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.util.Localizer;
 
@@ -48,6 +40,9 @@ public class Battle extends AppCompatActivity {
     @Override
     protected void onRestart() {
         super.onRestart();
+
+        BackgroundMusicManager.getInstance(this).play(R.raw.home_theme);
+
         hydrateViews();
     }
 
@@ -91,8 +86,14 @@ public class Battle extends AppCompatActivity {
     }
 
     private void hydrateSelectedPokemon() {
+        Pokemon pkmn = UserManager.getInstance().getUser().getLastBattledPokemon() != null ? UserManager.getInstance().getUser().getLastBattledPokemon().toPokemon() : null;
+
         if (UserManager.getInstance().getSelectedPokemonForBattle() != null) {
-            BattlePokemon selectedPokemon = new BattlePokemon(UserManager.getInstance().getSelectedPokemonForBattle().toPokemon());
+            pkmn = UserManager.getInstance().getSelectedPokemonForBattle().toPokemon();
+        }
+
+        if (pkmn != null) {
+            BattlePokemon selectedPokemon = new BattlePokemon(pkmn);
 
             noSelectedPokemonDisplay.setVisibility(LinearLayout.GONE);
             selectedPokemonDisplay.setVisibility(LinearLayout.VISIBLE);
@@ -118,9 +119,7 @@ public class Battle extends AppCompatActivity {
             noSelectedPokemonDisplay.setVisibility(LinearLayout.VISIBLE);
             selectedPokemonDisplay.setVisibility(LinearLayout.GONE);
 
-            selectPokemonButton.setOnClickListener(v -> {
-                startActivity(new Intent(this, Collection.class));
-            });
+            selectPokemonButton.setOnClickListener(v -> startActivity(new Intent(this, Collection.class)));
 
             battleButtons.setVisibility(LinearLayout.GONE);
         }

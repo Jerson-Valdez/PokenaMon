@@ -1,7 +1,10 @@
 package sickbay.pokenamon.core;
 
-import android.animation.ValueAnimator;
+import android.animation.ObjectAnimator;
+import android.app.AlertDialog;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -14,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +24,14 @@ import java.util.Objects;
 import java.util.Random;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.Pokemon;
+import sickbay.pokenamon.model.User;
 import sickbay.pokenamon.network.PokeAPIManager;
 import sickbay.pokenamon.system.arena.ArenaEngine;
 import sickbay.pokenamon.system.arena.AttackAction;
+import sickbay.pokenamon.system.arena.BattleLogger;
 import sickbay.pokenamon.system.arena.BattleMove;
 import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.system.arena.enums.Ailment;
@@ -34,7 +39,7 @@ import sickbay.pokenamon.system.arena.enums.StatId;
 import sickbay.pokenamon.system.arena.events.BattlePokemonListener;
 import sickbay.pokenamon.system.arena.events.DamageEffectListener;
 import sickbay.pokenamon.system.arena.events.MoveUseListener;
-import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
+import sickbay.pokenamon.system.home.BackgroundMusicManager;
 import sickbay.pokenamon.system.gacha.GetBattlePokemonListener;
 import sickbay.pokenamon.system.gacha.GetGachaPokemonListener;
 import sickbay.pokenamon.system.home.PokemonListAdapter;
@@ -53,13 +58,12 @@ public class BattleScene extends AppCompatActivity {
     private TextView playerAilment, enemyAilment;
     private BattlePokemon playerPokemon, enemyPokemon;
     private Map<LinearLayout, List<TextView>> moveMap;
-    private LinearLayout dock;
     private TextView battleLog;
     private TableLayout movePanel;
     private boolean battleOngoing;
-
-    private final List<String> logQueue = new ArrayList<>();
-    private boolean isDisplayingLog = false;
+    private BattleLogger battleLogger;
+    private int floor = 1;
+    private int totalShardsEarned = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +74,6 @@ public class BattleScene extends AppCompatActivity {
         BackgroundMusicManager.getInstance(this).play(R.raw.battle_theme);
 
         playerPokemon = new BattlePokemon(((PokemonDTO) Objects.requireNonNull(getIntent().getExtras()).getParcelable("player")).toPokemon());
-        UserManager.getInstance().getUser().setLastBattledPokemon(playerPokemon);
 
         init();
         hydrate();
@@ -112,9 +115,30 @@ public class BattleScene extends AppCompatActivity {
         moveMap.put(move3, List.of(move3Name, move3Pp, move3Type));
         moveMap.put(move4, List.of(move4Name, move4Pp, move4Type));
 
-        dock = findViewById(R.id.dock);
         battleLog = findViewById(R.id.battleLog);
         movePanel = findViewById(R.id.movePanel);
+
+        battleLogger = new BattleLogger(battleLog) {
+            @Override
+            public void onLogging() {
+                toggleMoves(false);
+                movePanel.setVisibility(TableLayout.GONE);
+                battleLog.setVisibility(TextView.VISIBLE);
+                battleLogger.setIsBattleOngoing(battleOngoing);
+            }
+
+            @Override
+            public void onLogFinish() {
+                movePanel.setVisibility(TableLayout.VISIBLE);
+                battleLog.setVisibility(TextView.GONE);
+                toggleMoves(true);
+
+                if (ArenaEngine.currentAction != null) {
+                    ArenaEngine.currentAction.notifyFinish();
+                    ArenaEngine.currentAction = null;
+                }
+            }
+        };
 
         battleOngoing = true;
     }
@@ -223,32 +247,26 @@ public class BattleScene extends AppCompatActivity {
         }
     }
 
-    private void takeAction(BattleMove move) {
-        toggleMoves(false);
-
-        BattleMove[] enemyMoves = enemyPokemon.getBattleMoves();
-        BattleMove enemyMove = enemyMoves[rand.nextInt(enemyMoves.length)];
-
-
-        ArenaEngine.commence(
-                new AttackAction(playerPokemon, move),
-                new AttackAction(enemyPokemon, enemyMove),
-                () -> {
-                    refreshHp();
-                    refreshMovesButton(moveMap);
-                }
-        );
-    }
-
     private void refreshHp() {
-        enemyHpBar.setProgress(enemyPokemon.getCurrentHp(), true);
-        updateHpBarTint(enemyHpBar, enemyPokemon.getCurrentHp(), enemyPokemon.getTotalHp());
+        ObjectAnimator.ofInt(enemyHpBar, "progress", enemyPokemon.getCurrentHp())
+            .setDuration(600)
+            .start();
+        enemyHpBar.post(() -> updateHpBarTint(enemyHpBar, enemyPokemon.getCurrentHp(), enemyPokemon.getTotalHp()));
+
         refreshAilmentBadge(enemyAilment, enemyPokemon);
 
-        playerHpBar.setProgress(playerPokemon.getCurrentHp(), true);
-        playerHp.setText(String.format("%,d / %,d", playerPokemon.getCurrentHp(), playerPokemon.getTotalHp()));
-        updateHpBarTint(playerHpBar, playerPokemon.getCurrentHp(), playerPokemon.getTotalHp());
-        refreshAilmentBadge(playerAilment, playerPokemon);
+        new Handler(Looper.getMainLooper()).postDelayed(
+                () -> {
+                    ObjectAnimator.ofInt(playerHpBar, "progress", playerPokemon.getCurrentHp())
+                            .setDuration(600)
+                            .start();
+                    playerHpBar.post(() -> {
+                        playerHp.setText(String.format("%,d / %,d", playerPokemon.getCurrentHp(), playerPokemon.getTotalHp()));
+                        updateHpBarTint(playerHpBar, playerPokemon.getCurrentHp(), playerPokemon.getTotalHp());
+                    });
+                    refreshAilmentBadge(playerAilment, playerPokemon);
+                }, 600
+        );
     }
 
     private void updateHpBarTint(ProgressBar bar, int currentHp, int totalHp) {
@@ -265,7 +283,7 @@ public class BattleScene extends AppCompatActivity {
         for (Map.Entry<LinearLayout, List<TextView>> move : moveMap.entrySet()) {
             BattleMove playerMove = playerMoves[i];
             move.getValue().get(1).setText(String.format("%d/%d", playerMove.getCurrentPp(), playerMove.getTotalPp()));
-            move.getKey().setEnabled(playerMove.getCurrentPp() > 0);
+            i++;
         }
     }
 
@@ -293,42 +311,20 @@ public class BattleScene extends AppCompatActivity {
         }
     }
 
-    private void displayBattleLog(String message) {
-        logQueue.add(message);
-        if (!isDisplayingLog) {
-            showNextMessage();
+    private void takeAction(BattleMove move) {
+        BattleMove[] enemyMoves = enemyPokemon.getBattleMoves();
+        BattleMove enemyMove = enemyMoves[rand.nextInt(enemyMoves.length)];
+
+        if (battleLogger.getIsFinished()) {
+            ArenaEngine.commence(
+                    new AttackAction(playerPokemon, move),
+                    new AttackAction(enemyPokemon, enemyMove),
+                    () -> {
+                        refreshHp();
+                        refreshMovesButton(moveMap);
+                    }
+            );
         }
-    }
-
-    private void showNextMessage() {
-        if (logQueue.isEmpty()) {
-            isDisplayingLog = false;
-
-            if (battleOngoing && !playerPokemon.isFainted() && !enemyPokemon.isFainted()) {
-                movePanel.setVisibility(TableLayout.VISIBLE);
-                battleLog.setVisibility(TextView.GONE);
-                toggleMoves(true);
-            }
-            return;
-        }
-
-        isDisplayingLog = true;
-        String text = logQueue.remove(0);
-
-        movePanel.setVisibility(TableLayout.GONE);
-        battleLog.setVisibility(TextView.VISIBLE);
-
-        long totalWait = Math.min((text.length() * 45) + 1200, 2500);
-
-        ValueAnimator animator = ValueAnimator.ofInt(0, text.length());
-        animator.setDuration(totalWait);
-        animator.addUpdateListener(animation -> {
-            battleLog.setText(text.substring(0, (int) animation.getAnimatedValue()));
-        });
-        animator.start();
-
-
-        dock.postDelayed(this::showNextMessage, totalWait + 500);
     }
 
     private void battle() {
@@ -340,221 +336,282 @@ public class BattleScene extends AppCompatActivity {
     }
 
     private void attachListeners(BattlePokemon pokemon) {
-        String pkmnName = Localizer.formatPokemonName(pokemon.getName());
-
         pokemon.setMoveUseListener(new MoveUseListener() {
             @Override
             public void onFail(BattleMove move) {
-                displayBattleLog("But it failed!");
+                battleLogger.displayBattleLog("But it failed!");
             }
 
             @Override
             public void onMiss(BattleMove move) {
-                displayBattleLog("But it missed...");
+                battleLogger.displayBattleLog("But it missed...");
             }
 
             @Override
             public void onUse(BattleMove move) {
-                displayBattleLog(pkmnName + " used " + Localizer.formatPokemonMove(move.getName()));
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " used " + Localizer.formatPokemonMove(move.getName()));
             }
 
             @Override
-            public void onHit(BattleMove move) {
-
-            }
+            public void onHit(BattleMove move) {}
 
             @Override
             public void onPpOut(BattleMove move) {
-                displayBattleLog(Localizer.formatPokemonMove(move.getName()) + " has no more PP!");
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(move.getName()) + " has no more PP!");
             }
 
             @Override
             public void onMultipleHits(BattleMove move, int hits) {
-                displayBattleLog("Hit (x" + hits + ") times!");
+                battleLogger.displayBattleLog("Hit (x" + hits + ") times!");
             }
         });
         pokemon.setDamageEffectListener(new DamageEffectListener() {
             @Override
             public void onCriticalDamage() {
-                displayBattleLog("It was a critical hit!");
+                battleLogger.displayBattleLog("It was a critical hit!");
             }
 
             @Override
             public void onEffective() {
-                displayBattleLog("It was super effective!");
+                battleLogger.displayBattleLog("It was super effective!");
             }
 
             @Override
             public void onResist() {
-                displayBattleLog("It was not very effective...");
+                battleLogger.displayBattleLog("It was not very effective...");
             }
 
             @Override
             public void onImmune() {
-                displayBattleLog("There was no effect.");
+                battleLogger.displayBattleLog("There was no effect.");
             }
         });
         pokemon.setBattlePokemonListener(new BattlePokemonListener() {
             @Override
             public void onFaint(BattlePokemon pokemon) {
-                displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " fainted.");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " fainted.");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (pokemon.getCollectionId() != null) {
+                        BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.lose);
+                        new AlertDialog.Builder(BattleScene.this)
+                                .setTitle("You Lost...")
+                                .setMessage(String.format("You reached the Floor %,02d before you and your Pokemon fell into defeat.. You have earned %,d shards in this battle.", floor, totalShardsEarned))
+                                .setNegativeButton("Return Home", (dialog, which) -> {
+                                    UserManager.getInstance().updateUserLastBattledPokemon(playerPokemon.toPokemonDTO());
+                                    finish();
+                                    overridePendingTransition(0,0);
+                                })
+                                .show();
+                        return;
+                    } else {
+                        BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.win);
+                        int shardsEarned = UserManager.getInstance().valuatePokemon(pokemon.toPokemonDTO());
+                        totalShardsEarned += shardsEarned;
+                        int exp = ArenaEngine.gainExp(playerPokemon, pokemon);
+                        int levelsGained = (int) (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3)));
+
+                        playerPokemon.setExp(exp);
+                        playerPokemon.setLevel(playerPokemon.getLevel() + levelsGained);
+
+                        UserManager.getInstance().updateUserEarnedShardsByBattling(shardsEarned);
+                        UserManager.getInstance().updateHighestFloorWin(floor);
+
+
+                        DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("exp").setValue(exp);
+                        DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("level").setValue(levelsGained);
+
+                        new AlertDialog.Builder(BattleScene.this)
+                                .setTitle("You won!")
+                                .setMessage(String.format("Onwards to Floor %,02d! Your battle in this current floor earned you %,d shards!", floor + 1, shardsEarned))
+                                .setNegativeButton("Return Home", (dialog, which) -> {
+                                    UserManager.getInstance().updateUserLastBattledPokemon(playerPokemon.toPokemonDTO());
+                                    finish();
+                                    overridePendingTransition(0,0);
+                                }).show();
+                    }
+                }, 3000);
             }
 
             @Override
             public void onBurn(BattlePokemon pokemon) {
-                displayBattleLog(pokemon.getName() + " was burned!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been hurt by its burn!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onPoison(BattlePokemon pokemon) {
-                displayBattleLog(pokemon.getName() + " was poisoned!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been hurt by its poison!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onFreeze(BattlePokemon pokemon) {
-                displayBattleLog(pokemon.getName() + " was frozen solid!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " is frozen solid!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
 
             @Override
             public void onThaw(BattlePokemon pokemon) {
-                displayBattleLog(pokemon.getName() + " was thawed!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been thawed!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
 
             @Override
             public void onSleep(BattlePokemon pokemon) {
-                displayBattleLog(pokemon.getName() + " is fast sleep!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " is fast sleep!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
 
             @Override
             public void onRest(BattlePokemon pokemon) {
-                displayBattleLog(pokemon.getName() + " is resting!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has fallen asleep!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
 
             @Override
             public void onWakeUp(BattlePokemon pokemon) {
-                displayBattleLog(pokemon.getName() + " woke up!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " woke up!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
 
             @Override
             public void onParalyze(BattlePokemon pokemon) {
-                displayBattleLog(pokemon.getName() + " has been paralyzed and may be unable to move!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been paralyzed and may be unable to move!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
 
             @Override
             public void onParalyzeSuccess(BattlePokemon pokemon) {
-                displayBattleLog(pokemon.getName() + " is paralyzed and unable to move!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " is paralyzed and unable to move!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onConfuse(BattlePokemon pokemon) {
-                displayBattleLog(pokemon.getName() + " is confused!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " is confused!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onConfusion(BattlePokemon pokemon) {
-                displayBattleLog("It hurt itself in its confusion.");
-                refreshHp();
+                battleLogger.displayBattleLog("It hurt itself in its confusion.");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onConfusionSnap(BattlePokemon pokemon) {
-                displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has gotten out of its confusion!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has gotten out of its confusion!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onFlinch(BattlePokemon pokemon) {
-                displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " flinched!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " flinched!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onHeal(BattlePokemon pokemon) {
-                displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has restored some of its health!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has restored some of its health!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onDrain(BattlePokemon pokemon) {
-                displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has restored some of its health!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has restored some of its health!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onDisabled(BattleMove move) {
-                displayBattleLog(Localizer.formatPokemonMove(move.getName()) + " has been disabled!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(move.getName()) + " has been disabled!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onTorment(BattleMove move) {
-                displayBattleLog("You cannot use the same move twice in a row!");
-                refreshHp();
+                battleLogger.displayBattleLog("You cannot use the same move twice in a row!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onYawn(BattlePokemon pokemon) {
-                displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " is about to fall asleep!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " is about to fall asleep...");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onSilence(BattleMove move) {
-                displayBattleLog(Localizer.formatPokemonMove(move.getName()) + " has been silenced!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(move.getName()) + " has been silenced!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onRecoil(BattlePokemon pokemon) {
-                displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " has been damaged by the recoil!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " has been damaged by the recoil!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onTarShot(BattlePokemon pokemon) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " has been weakened to fire!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onPerishSong(BattlePokemon pokemon, int turns) {
+                battleLogger.displayBattleLog("All Pokemon who hears the song will faint in " + turns + "!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onStatChange(BattlePokemon pokemon, StatId statId, int stage) {
-                displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + "'s " + Localizer.formatEnum(statId.name()) + " has been raised!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + "'s " + Localizer.formatEnum(statId.name()) + " has been raised!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onInflict(BattlePokemon pokemon, sickbay.pokenamon.system.arena.model.Ailment ailment) {
-                displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been inflicted with " + Localizer.formatEnum(ailment.getType().name()) + "!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been inflicted with " + Localizer.formatEnum(ailment.getType().name()).toLowerCase() + "!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onCure(BattlePokemon pokemon, sickbay.pokenamon.system.arena.model.Ailment ailment) {
-                displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been cured of " + Localizer.formatEnum(ailment.getType().name()) + "!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been cured of " + Localizer.formatEnum(ailment.getType().name()) + "!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onNightmare(BattlePokemon pokemon) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " is having nightmares!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onIngrain(BattlePokemon pokemon) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has planted its roots!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onVolatileInflict(BattlePokemon pokemon, sickbay.pokenamon.system.arena.model.VolatileAilment ailment) {
-                displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been inflicted with " + Localizer.formatEnum(ailment.getType().name()) + "!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been inflicted with " + Localizer.formatEnum(ailment.getType().name()).toLowerCase() + "!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
             public void onVolatileCure(BattlePokemon pokemon, sickbay.pokenamon.system.arena.model.VolatileAilment ailment) {
-                displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been cured of " + Localizer.formatEnum(ailment.getType().name()) + "!");
-                refreshHp();
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been cured of " + Localizer.formatEnum(ailment.getType().name()).toLowerCase() + "!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
             }
         });
     }

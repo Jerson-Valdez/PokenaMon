@@ -7,44 +7,97 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
+import sickbay.pokenamon.system.arena.enums.Ailment;
 import sickbay.pokenamon.system.arena.enums.StatId;
 import sickbay.pokenamon.system.arena.enums.DamageClass;
 import sickbay.pokenamon.system.arena.enums.TargetType;
 import sickbay.pokenamon.system.arena.enums.Type;
 import sickbay.pokenamon.system.arena.enums.VolatileAilment;
 import sickbay.pokenamon.system.arena.model.StatBuff;
+import sickbay.pokenamon.util.Localizer;
 
 public class ArenaEngine {
     private static final Random rand = new Random();
+    public static AttackAction currentAction;
+
+    public static int gainExp(BattlePokemon player, BattlePokemon enemy) {
+        return (int) ((35 * player.getLevel() / 7) * 1 * 1/1 * 1.5 * 1 * (enemy.getLevel() * 35 / 10) * 1 * 1);
+    }
 
     public static void commence(AttackAction playerAction, AttackAction enemyAction, Runnable onTurnEnd) {
         AttackAction[] sortedActions = sortActions(playerAction, enemyAction);
         Handler handler = new Handler(Looper.getMainLooper());
 
         AttackAction first = sortedActions[0];
-        applyMove(first.getPokemon(), first.getMove(), getTarget(first, sortedActions));
 
-        handler.postDelayed(() -> {
+        currentAction = first;
+
+        first.setActionFinishListener(() -> {
+            AttackAction second = sortedActions[1];
+            currentAction = second;
+
             if (sortedActions[0].getPokemon().isFainted() || sortedActions[1].getPokemon().isFainted()) {
                 onTurnEnd.run();
                 return;
             }
 
-            AttackAction second = sortedActions[1];
+            second.setActionFinishListener(() -> {
+                if (sortedActions[0].getPokemon().isFainted() || sortedActions[1].getPokemon().isFainted()) {
+                    onTurnEnd.run();
+                    return;
+                }
+
+                handler.postDelayed(onTurnEnd, 2500);
+            });
+
             applyMove(second.getPokemon(), second.getMove(), getTarget(second, sortedActions));
-            handler.postDelayed(onTurnEnd, 2500);
-        }, 2500);
+        });
+
+        applyMove(first.getPokemon(), first.getMove(), getTarget(first, sortedActions));
+
+        handler.postDelayed(onTurnEnd, 2500);
     }
 
     public static void applyMove(BattlePokemon user, BattleMove move,
                                  BattlePokemon target) {
         if (move.getCurrentPp() == 0) {
             user.notifyMovePpOut(move);
+            return;
         }
 
         user.notifyMoveUse(move);
 
-        if (!canMove(user, move)) return;
+        if (!canMove(user, move)) {
+            return;
+        };
+
+        if (user.hasVolatileElement(VolatileAilment.TORMENT) && user.getLastMoveUsed().getName().equals(move.getName())) {
+            user.notifyTorment(move);
+            return;
+        }
+
+        if (move.isDisabled()) {
+            user.getVolatileAilment(VolatileAilment.DISABLE);
+
+            if (user.getVolatileAilment(VolatileAilment.DISABLE).getTurns() > 0) {
+                user.getVolatileAilment(VolatileAilment.DISABLE).setTurns(user.getVolatileAilment(VolatileAilment.DISABLE).getTurns() - 1);
+                user.notifyDisabled(move);
+                return;
+            }
+
+            user.removeVolatileAilment(VolatileAilment.DISABLE);
+            move.setDisabled(false);
+        }
+
+        if (user.hasVolatileElement(VolatileAilment.HEAL_BLOCK)) {
+            if (user.getVolatileAilment(VolatileAilment.HEAL_BLOCK).getTurns() > 0) {
+                user.getVolatileAilment(VolatileAilment.HEAL_BLOCK).setTurns(user.getVolatileAilment(VolatileAilment.HEAL_BLOCK).getTurns() - 1);
+                user.notifyDisabled(move);
+                return;
+            }
+
+            user.removeVolatileAilment(VolatileAilment.HEAL_BLOCK);
+        }
 
         move.reducePp();
 
@@ -71,8 +124,8 @@ public class ArenaEngine {
             return;
         }
 
-        if (move.accuracy > 0 && !ArenaRegistry.alwaysHits(move) && canHit(user, move, target)) {
-            if (move.name.equals("high-jump-kick") || move.name.equals("jump-kick")) {
+        if (move.getAccuracy() > 0 && !ArenaRegistry.alwaysHits(move) && canHit(user, move, target)) {
+            if (move.getName().equals("high-jump-kick") || move.getName().equals("jump-kick")) {
                 int recoil = (int) Math.floor(user.getTotalHp() / 2.0);
                 user.takeDamage(recoil);
                 user.notifyRecoil(user);
@@ -81,14 +134,27 @@ public class ArenaEngine {
             return;
         }
 
-        double typeEffectiveness = TypeChart.getEffectiveness(move.type, target.getTypes());
-        if (typeEffectiveness == 0.0) {
-            user.notifyImmune();
-            return;
-        } else if (typeEffectiveness == 0.5) {
-            user.notifyResist();
-        } else if (typeEffectiveness == 2) {
-            user.notifyEffective();
+        if (ArenaRegistry.isMoveWithSpecialAilment(move)) {
+            inflictAilment(null, move.getName(), 0, target, false);
+
+            if (move.getName().equals("tar-shot")) {
+                if (rand.nextBoolean()) {
+                    applyPrimaryBuffs(move, user, target);
+                }
+            }
+        }
+
+        double typeEffectiveness = TypeChart.getEffectiveness(move.getType(), target.getTypes());
+
+        if (move.getDamageClass() != DamageClass.STATUS) {
+            if (typeEffectiveness == 0.0) {
+                user.notifyImmune();
+                return;
+            } else if (typeEffectiveness == 0.5) {
+                user.notifyResist();
+            } else if (typeEffectiveness == 2) {
+                user.notifyEffective();
+            }
         }
 
         if (ArenaRegistry.requiresAilment(move)) {
@@ -100,9 +166,11 @@ public class ArenaEngine {
 
         if (ArenaRegistry.isOhko(move)) { applyOhko(user, move, target); return; }
         if (ArenaRegistry.isFixedDamage(move)) { applyFixedDamage(user, move, target); return; }
-        if (move.damageClass == DamageClass.STATUS) { applyStatusMove(user, move, target); return; }
+        if (move.getDamageClass() == DamageClass.STATUS) { applyStatusMove(user, move, target); return; }
 
         applyDamageMove(user, move, target);
+
+        resolveAilment(user, target);
     }
 
     private static void applyDamageMove(BattlePokemon user, BattleMove move,
@@ -161,9 +229,9 @@ public class ArenaEngine {
 
     private static int computeDamage(BattlePokemon user, BattleMove move,
                                      BattlePokemon target) {
-        if (move.damageClass == DamageClass.STATUS) return 0;
+        if (move.getDamageClass() == DamageClass.STATUS) return 0;
 
-        boolean isPhysical = move.damageClass == DamageClass.PHYSICAL;
+        boolean isPhysical = move.getDamageClass() == DamageClass.PHYSICAL;
         boolean isCrit = resolveCrit(move);
 
         int atkStat = isPhysical ? user.getEffectiveStat(StatId.ATTACK) : user.getEffectiveStat(StatId.SPECIAL_ATTACK);
@@ -187,12 +255,64 @@ public class ArenaEngine {
 
         double critMulti   = isCrit ? 1.5 : 1.0;
         double randomMulti = (rand.nextInt(16) + 85) / 100.0;
-        double stab        = Arrays.asList(user.getTypes()).contains(move.type) ? 1.5 : 1.0;
-        double typeMulti   = TypeChart.getEffectiveness(move.type, target.getTypes());
-        double burnMulti   = (isPhysical && user.getAilment().getType() ==
-                sickbay.pokenamon.system.arena.enums.Ailment.BURN) ? 0.5 : 1.0;
+        double stab        = Arrays.asList(user.getTypes()).contains(move.getType()) ? 1.5 : 1.0;
+        double typeMulti   = TypeChart.getEffectiveness(move.getType(), target.getTypes());
+        double burnMulti   = (!move.getName().equals("facade") && isPhysical && user.getAilment().getType() ==
+                sickbay.pokenamon.system.arena.enums.Ailment.BURN) ? 0.5 : target.hasVolatileElement(VolatileAilment.TAR_SHOT) ? 2.0 : 1.0;
 
         return Math.max(1, (int) Math.floor(base * critMulti * randomMulti * stab * typeMulti * burnMulti));
+    }
+
+    private static void resolveAilment(BattlePokemon user, BattlePokemon target) {
+        if (user.getAilment().getType() == Ailment.NONE && user.getVolatileAilments().isEmpty()) return;
+
+        switch (user.getAilment().getType()) {
+            case BURN:
+                user.takeDamage((int) Math.floor(user.getTotalHp() * .0625)); // 1/16th of max HP
+                user.notifyBurn(user);
+                break;
+            case POISON:
+                user.takeDamage((int) Math.floor(user.getTotalHp() * .125)); // 1/8th of max HP
+                user.notifyPoison(user);
+                break;
+        }
+
+        for (sickbay.pokenamon.system.arena.model.VolatileAilment volatileAilment: user.getVolatileAilments()) {
+            switch (volatileAilment.getType()) {
+                case INGRAIN:
+                    user.setCurrentHp(user.getCurrentHp() + (int) Math.floor(user.getTotalHp() * .0625));
+                    user.notifyIngrain(user);
+                    break;
+                case NIGHTMARE:
+                    user.setCurrentHp(user.getCurrentHp() + (int) Math.floor(user.getTotalHp() * .25)); // 1/4th of max hp
+                    user.notifyNightmare(user);
+                    break;
+                case PERISH_SONG:
+                    if (user.getVolatileAilment(VolatileAilment.PERISH_SONG).getTurns() > 0) {
+                        user.getVolatileAilment(VolatileAilment.PERISH_SONG).setTurns(user.getVolatileAilment(VolatileAilment.PERISH_SONG).getTurns() - 1);
+                        user.notifyPerishSong(user, user.getVolatileAilment(VolatileAilment.PERISH_SONG).getTurns());
+                    } else {
+                        user.takeDamage(user.getCurrentHp());
+                        target.takeDamage(target.getCurrentHp());
+                        user.notifyFaint(user);
+                        return;
+                    }
+                    break;
+                case LEECH_SEED:
+                    user.setCurrentHp(user.getCurrentHp() + (int) Math.floor(user.getTotalHp() * .125));
+                    target.takeDamage((int) Math.floor(user.getTotalHp() * .125));
+                    user.notifyDrain(user);
+                    break;
+                case YAWN:
+                    if (user.getVolatileAilment(VolatileAilment.YAWN).getTurns() > 0) {
+                        user.getVolatileAilment(VolatileAilment.YAWN).setTurns(user.getVolatileAilment(VolatileAilment.YAWN).getTurns() - 1);
+                        user.notifyYawn(user);
+                    } else {
+                        user.notifySleep(user);
+                    }
+                    break;
+            }
+        }
     }
 
     private static int applyDamageModifiers(BattleMove move, BattlePokemon target, int damage) {
@@ -224,7 +344,7 @@ public class ArenaEngine {
 
     private static void applyFixedDamage(BattlePokemon user, BattleMove move, BattlePokemon target) {
         int damage;
-        switch (move.name) {
+        switch (move.getName()) {
             case "seismic-toss": case "night-shade": damage = user.getLevel(); break;
             case "dragon-rage":  damage = 40; break;
             case "sonic-boom":   damage = 20; break;
@@ -232,7 +352,7 @@ public class ArenaEngine {
                 damage = (int) Math.max(1, Math.floor(target.getCurrentHp() / 2.0)); break;
             case "psywave":
                 damage = (int) Math.max(1, Math.floor(user.getLevel() * (rand.nextInt(101) + 50) / 100.0)); break;
-            default: damage = move.power; break;
+            default: damage = move.getPower(); break;
         }
         target.takeDamage(damage);
         if (target.isFainted()) target.notifyFaint(target);
@@ -249,7 +369,7 @@ public class ArenaEngine {
     }
 
     private static void applySelfHeal(BattlePokemon user, BattleMove move) {
-        switch (move.name) {
+        switch (move.getName()) {
             case "rest":
                 user.setAilment(new sickbay.pokenamon.system.arena.model.Ailment(
                         sickbay.pokenamon.system.arena.enums.Ailment.SLEEP, 2, 2, 0));
@@ -269,7 +389,7 @@ public class ArenaEngine {
                 }
                 break;
             default:
-                if (ArenaRegistry.HEAL_HALF.contains(move.name)) {
+                if (ArenaRegistry.HEAL_HALF.contains(move.getName())) {
                     int amount = (int) Math.floor(user.getTotalHp() / 2.0);
                     user.heal(amount);
                     user.notifyHeal(user);
@@ -311,19 +431,14 @@ public class ArenaEngine {
                 target.getAilment().setMaximumTurns(turns);
                 target.getAilment().setMinimumTurns(1);
                 target.notifySleep(target);
-            } else if (ailment == sickbay.pokenamon.system.arena.enums.Ailment.BURN) {
-                target.notifyBurn(target);
-            } else if (ailment == sickbay.pokenamon.system.arena.enums.Ailment.POISON) {
-                target.notifyPoison(target);
-            } else if (ailment == sickbay.pokenamon.system.arena.enums.Ailment.PARALYSIS) {
-                target.notifyParalyze(target);
-            } else {
+            } else if (ailment == Ailment.FREEZE) {
                 target.notifyFreeze(target);
             }
-
-            target.notifyInflict(target, target.getAilment());
+            else {
+                target.notifyInflict(target, target.getAilment());
+            }
         } else {
-            VolatileAilment volatileType = VolatileAilment.valueOf(VolatileAilment.value(rawAilment));
+            VolatileAilment volatileType = VolatileAilment.valueOf(Localizer.formatEnumString(rawAilment));
             if (volatileType == VolatileAilment.NONE) return;
             if (target.hasVolatileElement(volatileType)) return;
 
@@ -340,17 +455,36 @@ public class ArenaEngine {
                 va.setTurns(2);
                 va.setMaximumTurns(2);
                 va.setMinimumTurns(2);
-                target.notifySleep(target);
+                target.notifyYawn(target);
+            } else if (volatileType == VolatileAilment.TORMENT) {
+                target.notifyTorment(target.getLastMoveUsed());
             } else if (volatileType == VolatileAilment.DISABLE) {
                 int turns = rand.nextInt(8);
                 va.setTurns(turns);
                 va.setMaximumTurns(7);
                 va.setMinimumTurns(0);
                 target.notifyDisabled(target.getLastMoveUsed());
+            } else if (volatileType == VolatileAilment.TAR_SHOT) {
+                target.notifyTarShot(target);
+            } else if (volatileType == VolatileAilment.PERISH_SONG) {
+                va.setMaximumTurns(3);
+                va.setTurns(va.getMaximumTurns());
+                target.notifyPerishSong(target, va.getTurns());
+            } else if (volatileType == VolatileAilment.TRI_ATTACK) {
+                int randomAilment = rand.nextInt(3);
+
+                if (randomAilment == 0) {
+                    inflictAilment(Ailment.PARALYSIS, "", 20, target, true);
+                } else if (randomAilment == 1) {
+                    inflictAilment(Ailment.FREEZE, "", 20, target, true);
+                } else {
+                    inflictAilment(Ailment.BURN, "", 20, target, true);
+                }
+
+                return;
             }
 
             target.addVolatileAilment(va);
-            target.notifyVolatileInflict(target, va);
         }
     }
 
@@ -431,7 +565,7 @@ public class ArenaEngine {
         }
         double stageMulti = (double) Math.max(3, 3 + user.getBuff(StatId.ACCURACY).getStage())
                 / Math.max(3, 3 - target.getBuff(StatId.EVASION).getStage());
-        return !(rand.nextInt(100) + 1 <= move.accuracy * stageMulti);
+        return !(rand.nextInt(100) + 1 <= move.getAccuracy() * stageMulti);
     }
 
     private static boolean resolveCrit(BattleMove move) {
@@ -441,8 +575,8 @@ public class ArenaEngine {
     }
 
     private static int resolveHits(BattleMove move) {
-        if (ArenaRegistry.DOUBLE_HIT.contains(move.name)) return 2;
-        if (ArenaRegistry.MULTI_HIT.contains(move.name)) {
+        if (ArenaRegistry.DOUBLE_HIT.contains(move.getName())) return 2;
+        if (ArenaRegistry.MULTI_HIT.contains(move.getName())) {
             int roll = rand.nextInt(100);
             if (roll < 35) return 2;
             if (roll < 70) return 3;
@@ -453,9 +587,9 @@ public class ArenaEngine {
     }
 
     private static int resolvePower(BattlePokemon user, BattleMove move, BattlePokemon target) {
-        if (!ArenaRegistry.hasVariablePower(move)) return move.power;
+        if (!ArenaRegistry.hasVariablePower(move)) return move.getPower();
         double hpRatio = (double) user.getCurrentHp() / user.getTotalHp();
-        switch (move.name) {
+        switch (move.getName()) {
             case "eruption": case "water-spout":
                 return (int) Math.max(1, Math.floor(150 * hpRatio));
             case "flail": case "reversal":
@@ -504,7 +638,7 @@ public class ArenaEngine {
                 if (percent >= 25.01) return 80;
                 if (percent >= 20.01) return 100;
                 return 120;
-            default: return move.power;
+            default: return move.getPower();
         }
     }
 

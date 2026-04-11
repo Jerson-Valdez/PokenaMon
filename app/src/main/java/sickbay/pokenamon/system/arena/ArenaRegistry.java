@@ -18,12 +18,12 @@ public class ArenaRegistry {
             "attract", // causes Infatuation which is permanent until the user is out of field (not that broken since 50% chance of infatuated pokemon missing)
             "baton-pass", // useless
             "helping-hand", // useless
-            "trick-room", // too much
+            "trick-room", // too much,
+            "destiny-bond" // hassle to implement
+    ));
 
-            // moves by ditto, unown, and smeargle (hassle to implement)
-            "transform",
-            "tri-attack",
-            "sketch"
+    public static final Set<String> MOVES_WITH_SPECIAL_AILMENT = new HashSet<>(List.of(
+       "thousand-arrows", "tri-attack", "smack-down", "perish-song", "telekinesis", "ingrain", "embargo", "tar-shot"
     ));
 
     public static final Set<String> ALWAYS_HIT = new HashSet<>(List.of(
@@ -322,171 +322,173 @@ public class ArenaRegistry {
     ));
 
 
-    public static boolean isBlacklisted(BattleMove move) { return BLACKLISTED_MOVES.contains(move.name); }
+    public static boolean isBlacklisted(BattleMove move) { return BLACKLISTED_MOVES.contains(move.getName()); }
+
+    public static boolean isMoveWithSpecialAilment(BattleMove move) { return MOVES_WITH_SPECIAL_AILMENT.contains(move.getName()); }
 
     public static boolean alwaysHits(BattleMove move) {
-        return ALWAYS_HIT.contains(move.name);
+        return ALWAYS_HIT.contains(move.getName());
     }
 
     public static boolean isOhko(BattleMove move) {
-        return OHKO.contains(move.name);
+        return OHKO.contains(move.getName());
     }
 
     public static boolean isTwoTurn(BattleMove move) {
-        return TWO_TURN.contains(move.name);
+        return TWO_TURN.contains(move.getName());
     }
 
     public static boolean isRecharge(BattleMove move) {
-        return RECHARGE.contains(move.name);
+        return RECHARGE.contains(move.getName());
     }
 
     public static boolean isHighCrit(BattleMove move) {
-        return HIGH_CRIT.contains(move.name);
+        return HIGH_CRIT.contains(move.getName());
     }
 
     public static boolean alwaysCrits(BattleMove move) {
-        return ALWAYS_CRIT.contains(move.name);
+        return ALWAYS_CRIT.contains(move.getName());
     }
 
     public static boolean isFixedDamage(BattleMove move) {
-        return FIXED_DAMAGE.contains(move.name);
+        return FIXED_DAMAGE.contains(move.getName());
     }
 
     public static boolean isLevelDamage(BattleMove move) {
-        return LEVEL_DAMAGE.contains(move.name);
+        return LEVEL_DAMAGE.contains(move.getName());
     }
 
     public static boolean isHalfHp(BattleMove move) {
-        return HALF_HP.contains(move.name);
+        return HALF_HP.contains(move.getName());
     }
 
     public static boolean hasDrain(BattleMove move) {
-        return DRAIN_HALF.contains(move.name) || DRAIN_THREE_QUARTERS.contains(move.name);
+        return DRAIN_HALF.contains(move.getName()) || DRAIN_THREE_QUARTERS.contains(move.getName());
     }
 
     public static double getDrainRatio(BattleMove move) {
-        if (DRAIN_THREE_QUARTERS.contains(move.name)) return 0.75;
-        if (DRAIN_HALF.contains(move.name)) return 0.50;
+        if (DRAIN_THREE_QUARTERS.contains(move.getName())) return 0.75;
+        if (DRAIN_HALF.contains(move.getName())) return 0.50;
         return 0.0;
     }
 
     public static double getRecoilRatio(BattleMove move) {
-        return RECOIL_RATIO.getOrDefault(move.name, 0.0);
+        return RECOIL_RATIO.getOrDefault(move.getName(), 0.0);
     }
 
     public static double getFixedDamageValue(BattleMove move) {
-        return FIXED_DAMAGE_VALUES.get(move.name);
+        return FIXED_DAMAGE_VALUES.get(move.getName());
     }
 
     public static int getPriorityOverride(BattleMove move) {
-        return PRIORITY_OVERRIDE.getOrDefault(move.name, move.priority);
+        return PRIORITY_OVERRIDE.getOrDefault(move.getName(), move.getPriority());
     }
 
     public static boolean bypassesStatStages(BattleMove move) {
-        return BYPASS_STAT_STAGES.contains(move.name);
+        return BYPASS_STAT_STAGES.contains(move.getName());
     }
 
     public static boolean causesUserToFaint(BattleMove move) {
-        return USER_FAINTS.contains(move.name);
+        return USER_FAINTS.contains(move.getName());
     }
 
     public static boolean hasVariablePower(BattleMove move) {
-        return VARIABLE_POWER.contains(move.name);
+        return VARIABLE_POWER.contains(move.getName());
     }
 
     public static boolean thawsUser(BattleMove move) {
-        return THAW_USER.contains(move.name);
+        return THAW_USER.contains(move.getName());
     }
 
     public static boolean thawsTarget(BattleMove move) {
-        return THAW_TARGET.contains(move.name);
+        return THAW_TARGET.contains(move.getName());
     }
 
     public static boolean isProtect(BattleMove move) {
-        return PROTECT.contains(move.name);
+        return PROTECT.contains(move.getName());
     }
 
     public static boolean isSelfHeal(BattleMove move) {
-        return SELF_HEAL.contains(move.name);
+        return SELF_HEAL.contains(move.getName());
     }
 
     public static boolean bypassesProtect(BattleMove move) {
-        return BYPASS_PROTECT.contains(move.name);
+        return BYPASS_PROTECT.contains(move.getName());
     }
 
     public static boolean curesSelfAilment(BattleMove move) {
-        return CURE_SELF_AILMENT.contains(move.name);
+        return CURE_SELF_AILMENT.contains(move.getName());
     }
 
     public static boolean requiresSleep(BattleMove move) {
-        return REQUIRES_SLEEP.contains(move.name);
+        return REQUIRES_SLEEP.contains(move.getName());
     }
 
     public static boolean hasCuresAilmentOnHit(BattleMove move) {
-        return CURES_AILMENT_ON_HIT.containsKey(move.name);
+        return CURES_AILMENT_ON_HIT.containsKey(move.getName());
     }
 
     public static Ailment getCuredAilmentOnHit(BattleMove move) {
-        return CURES_AILMENT_ON_HIT.get(move.name);
+        return CURES_AILMENT_ON_HIT.get(move.getName());
     }
 
     public static boolean hasDoublePowerOnAilment(BattleMove move) {
-        return DOUBLE_POWER_ON_AILMENT.containsKey(move.name);
+        return DOUBLE_POWER_ON_AILMENT.containsKey(move.getName());
     }
 
     public static Ailment getDoublePowerAilment(BattleMove move) {
-        return DOUBLE_POWER_ON_AILMENT.get(move.name);
+        return DOUBLE_POWER_ON_AILMENT.get(move.getName());
     }
 
     public static boolean requiresAilment(BattleMove move) {
-        return REQUIRES_AILMENT.containsKey(move.name);
+        return REQUIRES_AILMENT.containsKey(move.getName());
     }
 
     public static Ailment getRequiredAilment(BattleMove move) {
-        return REQUIRES_AILMENT.get(move.name);
+        return REQUIRES_AILMENT.get(move.getName());
     }
 
     public static boolean isFirstTurnOnly(BattleMove move) {
-        return FIRST_TURN_ONLY.contains(move.name);
+        return FIRST_TURN_ONLY.contains(move.getName());
     }
 
     public static boolean isLockIn(BattleMove move) {
-        return LOCK_IN.contains(move.name);
+        return LOCK_IN.contains(move.getName());
     }
 
     public static boolean failsIfSecond(BattleMove move) {
-        return FAILS_IF_SECOND.contains(move.name);
+        return FAILS_IF_SECOND.contains(move.getName());
     }
 
     public static boolean invulnerableDuringCharge(BattleMove move) {
-        return INVULNERABLE_DURING_CHARGE.contains(move.name);
+        return INVULNERABLE_DURING_CHARGE.contains(move.getName());
     }
 
     public static boolean hitsDuringDig(BattleMove move) {
-        return HITS_DURING_DIG.contains(move.name);
+        return HITS_DURING_DIG.contains(move.getName());
     }
 
     public static boolean hitsDuringFly(BattleMove move) {
-        return HITS_DURING_FLY.contains(move.name);
+        return HITS_DURING_FLY.contains(move.getName());
     }
 
     public static boolean hitsDuringDive(BattleMove move) {
-        return HITS_DURING_DIVE.contains(move.name);
+        return HITS_DURING_DIVE.contains(move.getName());
     }
 
     public static boolean hitsDuringPhantomForce(BattleMove move) {
-        return HITS_DURING_PHANTOM_FORCE.contains(move.name);
+        return HITS_DURING_PHANTOM_FORCE.contains(move.getName());
     }
 
     public static boolean curesTargetAilment(BattleMove move) {
-        return CURE_TARGET_AILMENT.contains(move.name);
+        return CURE_TARGET_AILMENT.contains(move.getName());
     }
 
     public static boolean powerDecreasesOnLowHp(BattleMove move) {
-        return POWER_DECREASES_LOW_HP.contains(move.name);
+        return POWER_DECREASES_LOW_HP.contains(move.getName());
     }
 
     public static boolean powerIncreasesOnLowHp(BattleMove move) {
-        return POWER_INCREASES_LOW_HP.contains(move.name);
+        return POWER_INCREASES_LOW_HP.contains(move.getName());
     }
 }

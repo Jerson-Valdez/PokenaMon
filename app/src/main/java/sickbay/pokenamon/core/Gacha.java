@@ -29,7 +29,7 @@ import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.Pokemon;
 import sickbay.pokenamon.network.PokeAPIManager;
-import sickbay.pokenamon.system.gacha.BackgroundMusicManager;
+import sickbay.pokenamon.system.home.BackgroundMusicManager;
 import sickbay.pokenamon.system.gacha.FetchGachaListener;
 import sickbay.pokenamon.system.gacha.GetGachaPokemonListener;
 
