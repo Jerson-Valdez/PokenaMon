@@ -126,6 +126,11 @@ public class BattleScene extends AppCompatActivity {
 
             @Override
             public void onLogFinish() {
+                if (playerPokemon.isSuspended() || playerPokemon.isCharging() || playerPokemon.isLockedIn()) {
+                    takeAction(playerPokemon.getLastMoveUsed());
+                    return;
+                }
+
                 movePanel.setVisibility(TableLayout.VISIBLE);
                 battleLog.setVisibility(TextView.GONE);
                 toggleMoves(true);
@@ -350,23 +355,19 @@ public class BattleScene extends AppCompatActivity {
                 BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.win);
                 int shardsEarned = UserManager.getInstance().valuatePokemon(pokemon.toPokemonDTO());
                 totalShardsEarned += shardsEarned;
-                int exp = ArenaEngine.gainExp(playerPokemon, pokemon);
-                int levelsGained = (int) (
-                        (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3)))  >= exp ?
-                                (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3))) + 1 :
-                                (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3))));
+                int expGained = ArenaEngine.gainExp(playerPokemon, pokemon);
+                double expRatio =  expGained / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3));
+                int levelsGained = (int) Math.max(1, Math.floor(expRatio));
 
-                playerPokemon.setExp(exp);
+                playerPokemon.setExp(playerPokemon.getExp() + expGained);
                 playerPokemon.setLevel(playerPokemon.getLevel() + levelsGained);
 
                 UserManager.getInstance().updateShards(shardsEarned);
                 UserManager.getInstance().updateUserEarnedShardsByBattling(shardsEarned);
                 UserManager.getInstance().updateHighestFloorWin(floor);
 
-
-
-                DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("exp").setValue(exp);
-                DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("level").setValue(levelsGained);
+                DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("exp").setValue(playerPokemon.getExp());
+                DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("level").setValue(playerPokemon.getLevel());
 
                 new AlertDialog.Builder(BattleScene.this)
                         .setTitle("You won!")
@@ -537,14 +538,14 @@ public class BattleScene extends AppCompatActivity {
             }
 
             @Override
-            public void onDisabled(BattleMove move) {
-                battleLogger.displayBattleLog(Localizer.formatPokemonMove(move.getName()) + " has been disabled!");
+            public void onDisabled(BattlePokemon pokemon, BattleMove move) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + "'s " + Localizer.formatPokemonMove(move.getName()) + " has been disabled!");
                 battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
             @Override
-            public void onTorment(BattleMove move) {
-                battleLogger.displayBattleLog("You cannot use the same move twice in a row!");
+            public void onTorment(BattlePokemon pokemon, BattleMove move) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " cannot use the same move twice in a row!");
                 battleLog.postDelayed(() -> refreshHp(), 300);
             }
 
@@ -585,6 +586,42 @@ public class BattleScene extends AppCompatActivity {
             }
 
             @Override
+            public void onFly(BattlePokemon pokemon) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " flew to the sky!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onDig(BattlePokemon pokemon) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " dug into the ground!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onDive(BattlePokemon pokemon) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " dove into the water!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onCharge(BattlePokemon pokemon) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " has started to charge!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onCharging(BattlePokemon pokemon) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " is charging...");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onChargeFinish(BattlePokemon pokemon) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " has finished charging!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
             public void onInflict(BattlePokemon pokemon, sickbay.pokenamon.system.arena.model.Ailment ailment) {
                 battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has been inflicted with " + Localizer.formatEnum(ailment.getType().name()).toLowerCase() + "!");
                 battleLog.postDelayed(() -> refreshHp(), 300);
@@ -605,6 +642,18 @@ public class BattleScene extends AppCompatActivity {
             @Override
             public void onIngrain(BattlePokemon pokemon) {
                 battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " has planted its roots!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onProtect(BattlePokemon pokemon, BattleMove move) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + " protected itself from the move!");
+                battleLog.postDelayed(() -> refreshHp(), 300);
+            }
+
+            @Override
+            public void onProtectFail(BattlePokemon pokemon, BattleMove move) {
+                battleLogger.displayBattleLog(Localizer.formatPokemonMove(pokemon.getName()) + "'s protection failed!");
                 battleLog.postDelayed(() -> refreshHp(), 300);
             }
 

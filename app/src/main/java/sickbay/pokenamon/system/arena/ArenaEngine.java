@@ -18,14 +18,17 @@ import sickbay.pokenamon.util.Localizer;
 
 public class ArenaEngine {
     private static final Random rand = new Random();
+    public static AttackAction[] actions;
     public static AttackAction currentAction;
 
     public static int gainExp(BattlePokemon player, BattlePokemon enemy) {
-        return (int) ((35 * player.getLevel() / 7) * 1 * 1/1 * 1.5 * 1 * (enemy.getLevel() * 35 / 10) * 1 * 1);
+        return (int) ((25 * player.getLevel() / 7) * 1 * 1/1 * 1.5 * 1 * (enemy.getLevel() * 5 / 10) * 1 * 1);
     }
 
     public static void commence(AttackAction playerAction, AttackAction enemyAction, Runnable onTurnEnd) {
         AttackAction[] sortedActions = sortActions(playerAction, enemyAction);
+        actions = sortedActions;
+
         Handler handler = new Handler(Looper.getMainLooper());
 
         AttackAction first = sortedActions[0];
@@ -47,7 +50,7 @@ public class ArenaEngine {
                     return;
                 }
 
-                handler.postDelayed(onTurnEnd, 2500);
+                handler.postDelayed(onTurnEnd, 5000);
             });
 
             applyMove(second.getPokemon(), second.getMove(), getTarget(second, sortedActions));
@@ -55,11 +58,21 @@ public class ArenaEngine {
 
         applyMove(first.getPokemon(), first.getMove(), getTarget(first, sortedActions));
 
-        handler.postDelayed(onTurnEnd, 2500);
+        handler.postDelayed(onTurnEnd, 5000);
     }
 
     public static void applyMove(BattlePokemon user, BattleMove move,
                                  BattlePokemon target) {
+        if (user.isCharging()) {
+            if (user.getTurns() > 0) {
+                user.setTurns(user.getTurns() - 1);
+                user.notifyCharging(user);
+                return;
+            }
+
+            user.notifyChargeFinish(user);
+        }
+
         if (move.getCurrentPp() == 0) {
             user.notifyMovePpOut(move);
             return;
@@ -71,8 +84,8 @@ public class ArenaEngine {
             return;
         };
 
-        if (user.hasVolatileElement(VolatileAilment.TORMENT) && user.getLastMoveUsed().getName().equals(move.getName())) {
-            user.notifyTorment(move);
+        if (user.hasVolatileElement(VolatileAilment.TORMENT) && user.getLastMoveUsed() != null && user.getLastMoveUsed().getName().equals(move.getName())) {
+            user.notifyTorment(user, move);
             return;
         }
 
@@ -81,7 +94,7 @@ public class ArenaEngine {
 
             if (user.getVolatileAilment(VolatileAilment.DISABLE).getTurns() > 0) {
                 user.getVolatileAilment(VolatileAilment.DISABLE).setTurns(user.getVolatileAilment(VolatileAilment.DISABLE).getTurns() - 1);
-                user.notifyDisabled(move);
+                user.notifyDisabled(user, move);
                 return;
             }
 
@@ -92,7 +105,7 @@ public class ArenaEngine {
         if (user.hasVolatileElement(VolatileAilment.HEAL_BLOCK)) {
             if (user.getVolatileAilment(VolatileAilment.HEAL_BLOCK).getTurns() > 0) {
                 user.getVolatileAilment(VolatileAilment.HEAL_BLOCK).setTurns(user.getVolatileAilment(VolatileAilment.HEAL_BLOCK).getTurns() - 1);
-                user.notifyDisabled(move);
+                user.notifyDisabled(user, move);
                 return;
             }
 
@@ -100,6 +113,13 @@ public class ArenaEngine {
         }
 
         move.reducePp();
+
+        user.setLastMoveUsed(move);
+
+        if (actions[1] == currentAction && ArenaRegistry.isFirstTurnOnly(move)) {
+            user.notifyMoveFail(move);
+            return;
+        }
 
         if (user.hasVolatileElement(VolatileAilment.CONFUSION)) {
             sickbay.pokenamon.system.arena.model.VolatileAilment confusion =
@@ -141,6 +161,51 @@ public class ArenaEngine {
                 if (rand.nextBoolean()) {
                     applyPrimaryBuffs(move, user, target);
                 }
+            }
+        }
+
+        if (ArenaRegistry.isLockIn(move) || ArenaRegistry.isTwoTurn(move)) {
+            int turns = 2;
+
+            if (rand.nextBoolean() && !ArenaRegistry.isTwoTurn(move)) {
+                turns = 3;
+            }
+
+            user.setTurns(turns);
+        }
+
+        if (!user.isSuspended()) {
+            user.setTurns(1);
+            user.setSuspended(true);
+
+            switch (move.getName()) {
+                case "fly":
+                    user.notifyFly(user);
+                    return;
+                case "dig":
+                    user.notifyDig(user);
+                    return;
+                case "dive":
+                    user.notifyDive(user);
+                    return;
+            }
+        } else if (user.isSuspended() && user.getTurns() > 0) {
+            user.setTurns(0);
+            return;
+        } else {
+            user.setSuspended(false);
+        }
+
+        if (target.getLastMoveUsed() != null) {
+            if ((!ArenaRegistry.hitsDuringFly(move) || !ArenaRegistry.hitsDuringDig(move) || !ArenaRegistry.hitsDuringDive(move) || !ArenaRegistry.hitsDuringPhantomForce(move)) && ArenaRegistry.invulnerableDuringCharge(target.getLastMoveUsed())) {
+                user.notifyMoveMiss(move);
+                return;
+            }
+
+            if (!ArenaRegistry.bypassesProtect(move) && ArenaRegistry.isProtect(target.getLastMoveUsed())) {
+                user.notifyProtect(target, move);
+            } else if (ArenaRegistry.bypassesProtect(move)) {
+                user.notifyProtectFail(target, move);
             }
         }
 
@@ -202,6 +267,7 @@ public class ArenaEngine {
             double drainRatio = ArenaRegistry.getDrainRatio(move);
             if (drainRatio > 0) {
                 user.heal((int) Math.floor(damage * drainRatio));
+                target.takeDamage((int) Math.floor(damage * drainRatio));
                 user.notifyDrain(user);
             }
 
@@ -218,6 +284,15 @@ public class ArenaEngine {
             user.takeDamage(user.getCurrentHp());
             user.notifyFaint(user);
             return;
+        }
+
+        if (move.getName().equalsIgnoreCase("wake-up-slap")) {
+            target.notifyWakeUp(target);
+        }
+
+        if (ArenaRegistry.isRecharge(move)) {
+            user.setCharging(true);
+            user.notifyCharge(user);
         }
 
         if (!target.isFainted()) {
@@ -457,13 +532,13 @@ public class ArenaEngine {
                 va.setMinimumTurns(2);
                 target.notifyYawn(target);
             } else if (volatileType == VolatileAilment.TORMENT) {
-                target.notifyTorment(target.getLastMoveUsed());
+                target.notifyTorment(target, target.getLastMoveUsed());
             } else if (volatileType == VolatileAilment.DISABLE) {
                 int turns = rand.nextInt(8);
                 va.setTurns(turns);
                 va.setMaximumTurns(7);
                 va.setMinimumTurns(0);
-                target.notifyDisabled(target.getLastMoveUsed());
+                target.notifyDisabled(target, target.getLastMoveUsed());
             } else if (volatileType == VolatileAilment.TAR_SHOT) {
                 target.notifyTarShot(target);
             } else if (volatileType == VolatileAilment.PERISH_SONG) {
@@ -575,7 +650,6 @@ public class ArenaEngine {
     }
 
     private static int resolveHits(BattleMove move) {
-        if (ArenaRegistry.DOUBLE_HIT.contains(move.getName())) return 2;
         if (ArenaRegistry.MULTI_HIT.contains(move.getName())) {
             int roll = rand.nextInt(100);
             if (roll < 35) return 2;
@@ -590,6 +664,10 @@ public class ArenaEngine {
         if (!ArenaRegistry.hasVariablePower(move)) return move.getPower();
         double hpRatio = (double) user.getCurrentHp() / user.getTotalHp();
         switch (move.getName()) {
+            case "wake-up-slap":
+                if (target.getAilment().getType() == Ailment.SLEEP) return move.getPower() * 2;
+            case "smelling-salts":
+                if (target.getAilment().getType() == Ailment.PARALYSIS) return move.getPower() * 2;
             case "eruption": case "water-spout":
                 return (int) Math.max(1, Math.floor(150 * hpRatio));
             case "flail": case "reversal":

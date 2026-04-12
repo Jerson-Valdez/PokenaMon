@@ -20,6 +20,13 @@ public class BattlePokemon extends Pokemon {
     HashSet<VolatileAilment> volatileAilments;
     HashSet<StatBuff> buffs;
     BattleMove lastMoveUsed;
+
+    boolean suspended;
+    boolean lockedIn;
+    boolean charging;
+    int turns;
+
+
     private BattlePokemonListener battlePokemonListener;
     private DamageEffectListener damageEffectListener;
     private MoveUseListener moveUseListener;
@@ -100,6 +107,36 @@ public class BattlePokemon extends Pokemon {
     public void takeDamage(int damage) {
         setCurrentHp(Math.max(0, getCurrentHp() - damage));
     }
+
+
+    public boolean isSuspended() { return suspended; }
+
+    public void setSuspended(boolean isSuspended) { this.suspended = isSuspended; }
+
+    public int getTurns() {
+        return turns;
+    }
+
+    public void setTurns(int turns) {
+        this.turns = turns;
+    }
+
+    public boolean isCharging() {
+        return charging;
+    }
+
+    public void setCharging(boolean charging) {
+        this.charging = charging;
+    }
+
+    public boolean isLockedIn() {
+        return lockedIn;
+    }
+
+    public void setLockedIn(boolean lockedIn) {
+        this.lockedIn = lockedIn;
+    }
+
 
     public void setBattlePokemonListener(BattlePokemonListener listener) { battlePokemonListener = listener; }
     public void setMoveUseListener(MoveUseListener listener) { moveUseListener = listener; }
@@ -210,12 +247,12 @@ public class BattlePokemon extends Pokemon {
         if (battlePokemonListener != null) battlePokemonListener.onDrain(pokemon);
     }
 
-    public void notifyDisabled(BattleMove move) {
-        if (battlePokemonListener != null) battlePokemonListener.onDisabled(move);
+    public void notifyDisabled(BattlePokemon pokemon, BattleMove move) {
+        if (battlePokemonListener != null) battlePokemonListener.onDisabled(pokemon, move);
     }
 
-    public void notifyTorment(BattleMove move) {
-        if (battlePokemonListener != null) battlePokemonListener.onTorment(move);
+    public void notifyTorment(BattlePokemon pokemon, BattleMove move) {
+        if (battlePokemonListener != null) battlePokemonListener.onTorment(pokemon, move);
     }
 
     public void notifyYawn(BattlePokemon pokemon) {
@@ -265,4 +302,37 @@ public class BattlePokemon extends Pokemon {
     public void notifyVolatileCure(BattlePokemon pokemon, VolatileAilment ailment) {
         if (battlePokemonListener != null) battlePokemonListener.onVolatileCure(pokemon, ailment);
     }
+
+    public void notifyFly(BattlePokemon pokemon) {
+        if (battlePokemonListener != null) battlePokemonListener.onFly(pokemon);
+    }
+
+    public void notifyDig(BattlePokemon pokemon) {
+        if (battlePokemonListener != null) battlePokemonListener.onDig(pokemon);
+    }
+
+    public void notifyDive(BattlePokemon pokemon) {
+        if (battlePokemonListener != null) battlePokemonListener.onDive(pokemon);
+    }
+
+    public void notifyCharge(BattlePokemon pokemon) {
+        if (battlePokemonListener != null) battlePokemonListener.onCharge(pokemon);
+    }
+
+    public void notifyCharging(BattlePokemon pokemon) {
+        if (battlePokemonListener != null) battlePokemonListener.onCharging(pokemon);
+    }
+
+    public void notifyChargeFinish(BattlePokemon pokemon) {
+        if (battlePokemonListener != null) battlePokemonListener.onChargeFinish(pokemon);
+    }
+
+    public void notifyProtect(BattlePokemon pokemon, BattleMove move) {
+        if (battlePokemonListener != null) battlePokemonListener.onProtect(pokemon, move);
+    }
+
+    public void notifyProtectFail(BattlePokemon pokemon, BattleMove move) {
+        if (battlePokemonListener != null) battlePokemonListener.onProtectFail(pokemon, move);
+    }
+
 }
