@@ -6,12 +6,10 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.gms.tasks.Task;
 
-import java.util.Objects;
 
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.User;
-import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.util.Localizer;
 
 public class UserManager {
@@ -42,7 +40,7 @@ public class UserManager {
 
     public Task<Void> updateShards(int amount) {
         currentUser.setShards(currentUser.getShards() + amount);
-        return DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("coins").setValue(currentUser.getShards());
+        return DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("shards").setValue(currentUser.getShards());
     }
 
     public void updatePokemonCount(int count) {
