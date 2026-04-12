@@ -231,6 +231,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
+                android:paddingVertical="20dp"
                 >
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -319,8 +320,9 @@
 
                     <ImageView
                         android:id="@+id/selectedPokemonSprite"
-                        android:layout_width="140dp"
-                        android:layout_height="140dp"
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
+                        android:scaleType="fitCenter"
                         />
                 </LinearLayout>
 

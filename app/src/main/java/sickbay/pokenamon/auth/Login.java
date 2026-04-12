@@ -138,6 +138,7 @@ public class Login extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
+
                         Log.e("Login", error.getMessage(), error.toException());
                         Toast.makeText(context, "Sorry! We couldn't log you in..", Toast.LENGTH_SHORT).show();
                     }

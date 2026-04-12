@@ -41,7 +41,9 @@ public class Pokemon {
         this.moves = moves;
     }
 
-    public Pokemon(int pokedexId, String name, int rarity, int level, int exp, Type[] types, PokemonSprite sprite, String cry, double weight, HashMap<StatId, PokemonStat> stats, String[] moves) {
+
+    public Pokemon(String collectionId, int pokedexId, String name, int rarity, int level, int exp, Type[] types, PokemonSprite sprite, String cry, double weight, HashMap<StatId, PokemonStat> stats, String[] moves) {
+        this.collectionId = collectionId;
         this.pokedexId = pokedexId;
         this.name = name;
         this.rarity = rarity;
@@ -165,6 +167,9 @@ public class Pokemon {
             stats.put(stat.getKey().name(), stat.getValue().getBattleStat());
         }
 
-        return new PokemonDTO(pokedexId, name, rarity, level, exp, weight, height, types, sprite, cry, stats, new ArrayList<>(Arrays.asList(moves)));
+        PokemonDTO dto = new PokemonDTO(pokedexId, name, rarity, level, exp, weight, height, types, sprite, cry, stats, new ArrayList<>(Arrays.asList(moves)));
+        dto.setCollectionId(getCollectionId());
+
+        return dto;
     }
 }

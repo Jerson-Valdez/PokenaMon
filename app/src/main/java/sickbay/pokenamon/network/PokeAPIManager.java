@@ -138,7 +138,6 @@ public class PokeAPIManager {
                     listener.onComplete(pokemon);
                 });
 
-
             } catch (JSONException e) {
                 listener.onError(e.getMessage());
             }

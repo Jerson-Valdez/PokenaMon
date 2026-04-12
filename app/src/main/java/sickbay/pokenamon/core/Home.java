@@ -21,8 +21,10 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.TimeZone;
 
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.auth.Login;
@@ -39,7 +41,8 @@ import sickbay.pokenamon.util.SecurePreferences;
 
 public class Home extends AppCompatActivity {
     ImageView lastBattledPokemon;
-    TextView txtUsername, lastBattledPokemonName, noRecentSummonsDisplay;
+    LinearLayout battleCard;
+    TextView greeting, txtUsername, lastBattledPokemonName, noRecentSummonsDisplay;
     RecyclerView recyclerViewRecent;
     Button startBattle, changePokemon, btnLogout;
 
@@ -64,6 +67,8 @@ public class Home extends AppCompatActivity {
     }
 
     private void init() {
+        battleCard = findViewById(R.id.battleCard);
+        greeting = findViewById(R.id.greeting);
         startBattle = findViewById(R.id.startBattle);
         lastBattledPokemon = findViewById(R.id.lastBattledPokemonSprite);
         changePokemon = findViewById(R.id.changePokemon);
@@ -73,11 +78,19 @@ public class Home extends AppCompatActivity {
         recyclerViewRecent = findViewById(R.id.recyclerViewRecent);
         btnLogout = findViewById(R.id.logout);
 
+        greeting.setText(Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 12 ? "Good morning, " : Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 17 ? "Good afternoon, " : Calendar.getInstance().get(Calendar.HOUR_OF_DAY) < 19 ? "Good evening, " : "Good night, ");
+
         recyclerViewRecent.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerViewRecent.addItemDecoration(new HorizontalSpacingItemDecoration(16));
 
         LinearLayout btnSummon = findViewById(R.id.btnQuickSummon);
         LinearLayout btnCollection = findViewById(R.id.btnQuickCollection);
+
+        if (UserManager.getInstance().getUser().getLastBattledPokemon() == null) {
+            battleCard.setVisibility(LinearLayout.GONE);
+        } else {
+            battleCard.setVisibility(LinearLayout.VISIBLE);
+        }
 
         btnLogout.setOnClickListener(v -> {
             SecurePreferences prefs = new SecurePreferences(this, "credentials", true);
@@ -129,12 +142,13 @@ public class Home extends AppCompatActivity {
                                         user.setUid(uid);
 
                                         UserManager.getInstance().setUser(user);
+                                        fetchUser();
                                     }
                                 }
 
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError error) {
-                                    Log.e("Login", error.getMessage(), error.toException());
+                                    Log.e("Home", error.getMessage(), error.toException());
                                 }
                             });
 
@@ -143,6 +157,8 @@ public class Home extends AppCompatActivity {
 
         String username = UserManager.getInstance().getUser().getUsername();
         PokemonDTO pokemon = UserManager.getInstance().getUser().getLastBattledPokemon();
+
+        UserManager.getInstance().setSelectedPokemonForBattle(pokemon);
 
         txtUsername.setText(Localizer.toTitleCase(username));
 

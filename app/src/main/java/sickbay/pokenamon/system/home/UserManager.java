@@ -16,9 +16,8 @@ import sickbay.pokenamon.util.Localizer;
 
 public class UserManager {
     private static UserManager instance;
-    private User currentUser;
-
-    private PokemonDTO selectedPokemonForBattle;
+    private static User currentUser;
+    private static PokemonDTO selectedPokemonForBattle;
 
     private UserManager() {}
 
@@ -31,19 +30,19 @@ public class UserManager {
 
     public User getUser() { return currentUser; }
 
-    public void setUser(User user) { this.currentUser = user; }
+    public void setUser(User user) { UserManager.currentUser = user; }
 
     public PokemonDTO getSelectedPokemonForBattle() {
         return selectedPokemonForBattle;
     }
 
     public void setSelectedPokemonForBattle(PokemonDTO selectedPokemonForBattle) {
-        this.selectedPokemonForBattle = selectedPokemonForBattle;
+        UserManager.selectedPokemonForBattle = selectedPokemonForBattle;
     }
 
-    public Task<Void> updateCoins(int amount) {
-        currentUser.setCoins(currentUser.getCoins() + amount);
-        return DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("coins").setValue(currentUser.getCoins());
+    public Task<Void> updateShards(int amount) {
+        currentUser.setShards(currentUser.getShards() + amount);
+        return DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("coins").setValue(currentUser.getShards());
     }
 
     public void updatePokemonCount(int count) {
@@ -86,7 +85,7 @@ public class UserManager {
                 .setMessage("You are about to sell " + Localizer.formatPokemonName(pokemon.getName()) + " for " + pokemonValue + " shards. Do you want to continue?")
                 .setCancelable(false)
                 .setPositiveButton("Continue", (dialog, which) -> {
-                    updateCoins(pokemonValue)
+                    updateShards(pokemonValue)
                             .addOnCompleteListener(task -> {
                                 if (task.isSuccessful()) {
                                     if (selectedPokemonForBattle != null && pokemon.getCollectionId().equals(selectedPokemonForBattle.getCollectionId())) {

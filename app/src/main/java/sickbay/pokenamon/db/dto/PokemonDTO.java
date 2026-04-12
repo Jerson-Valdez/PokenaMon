@@ -3,6 +3,8 @@ package sickbay.pokenamon.db.dto;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.firebase.database.Exclude;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +31,9 @@ public class PokemonDTO implements Parcelable {
     private HashMap<String, Integer> stats;
     private ArrayList<String> moves;
     private long summonedAt;
+
+    @Exclude
+    public int getStability(){return 0;}
 
     public PokemonDTO() {}
 
@@ -201,10 +206,7 @@ public class PokemonDTO implements Parcelable {
             stats.put(id, new PokemonStat(id, entry.getValue()));
         }
 
-        Pokemon pokemon = new Pokemon(pokedexId, name, rarity, level, exp, types, sprite, cry, weight, stats, moves.toArray(new String[0]));
-        pokemon.setCollectionId(collectionId);
-
-        return pokemon;
+        return new Pokemon(collectionId, pokedexId, name, rarity, level, exp, types, sprite, cry, weight, stats, moves.toArray(new String[0]));
     }
 
     @Override
