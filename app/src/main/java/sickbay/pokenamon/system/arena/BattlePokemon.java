@@ -37,6 +37,8 @@ public class BattlePokemon extends Pokemon {
                 pokemon.getStats(),
                 pokemon.getMoves());
         super.setCollectionId(pokemon.getCollectionId());
+        setCollectionId(pokemon.getCollectionId());
+
         totalHp = pokemon.getName().equals(ArenaRegistry.SINGLE_HP_POKEMON) ? 1 : pokemon.getStats().get(StatId.HP).getEffectiveStat(pokemon.getLevel());
         currentHp = totalHp;
         battleMoves = Arrays.stream(pokemon.getMoves()).map(BattleMove::new).toArray(BattleMove[]::new);
@@ -102,7 +104,6 @@ public class BattlePokemon extends Pokemon {
     public void setBattlePokemonListener(BattlePokemonListener listener) { battlePokemonListener = listener; }
     public void setMoveUseListener(MoveUseListener listener) { moveUseListener = listener; }
     public void setDamageEffectListener(DamageEffectListener listener) { damageEffectListener = listener; }
-
 
     public void notifyMoveUse(BattleMove move) {
         if (moveUseListener != null) moveUseListener.onUse(move);

@@ -20,14 +20,11 @@ import com.bumptech.glide.Glide;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Random;
 
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.db.DB;
-import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.Pokemon;
-import sickbay.pokenamon.model.User;
 import sickbay.pokenamon.network.PokeAPIManager;
 import sickbay.pokenamon.system.arena.ArenaEngine;
 import sickbay.pokenamon.system.arena.AttackAction;
@@ -73,7 +70,7 @@ public class BattleScene extends AppCompatActivity {
 
         BackgroundMusicManager.getInstance(this).play(R.raw.battle_theme);
 
-        playerPokemon = new BattlePokemon(((PokemonDTO) Objects.requireNonNull(getIntent().getExtras()).getParcelable("player")).toPokemon());
+        playerPokemon = new BattlePokemon(UserManager.getInstance().getSelectedPokemonForBattle().toPokemon());
 
         init();
         hydrate();
@@ -249,7 +246,7 @@ public class BattleScene extends AppCompatActivity {
 
     private void refreshHp() {
         ObjectAnimator.ofInt(enemyHpBar, "progress", enemyPokemon.getCurrentHp())
-            .setDuration(600)
+            .setDuration(300)
             .start();
         enemyHpBar.post(() -> updateHpBarTint(enemyHpBar, enemyPokemon.getCurrentHp(), enemyPokemon.getTotalHp()));
 
@@ -258,14 +255,14 @@ public class BattleScene extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).postDelayed(
                 () -> {
                     ObjectAnimator.ofInt(playerHpBar, "progress", playerPokemon.getCurrentHp())
-                            .setDuration(600)
+                            .setDuration(300)
                             .start();
                     playerHpBar.post(() -> {
                         playerHp.setText(String.format("%,d / %,d", playerPokemon.getCurrentHp(), playerPokemon.getTotalHp()));
                         updateHpBarTint(playerHpBar, playerPokemon.getCurrentHp(), playerPokemon.getTotalHp());
                     });
                     refreshAilmentBadge(playerAilment, playerPokemon);
-                }, 600
+                }, 300
         );
     }
 
@@ -335,6 +332,54 @@ public class BattleScene extends AppCompatActivity {
         bindPlayerMovesToButtons(moveMap);
     }
 
+    private void conclude(BattlePokemon pokemon) {
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (pokemon.getCollectionId() != null) {
+                BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.lose);
+                new AlertDialog.Builder(BattleScene.this)
+                        .setTitle("You Lost...")
+                        .setMessage(String.format("You reached the Floor %,02d before you and your Pokemon fell into defeat.. You have earned %,d shards in this battle.", floor, totalShardsEarned))
+                        .setNegativeButton("Return Home", (dialog, which) -> {
+                            UserManager.getInstance().updateUserLastBattledPokemon(playerPokemon.toPokemonDTO());
+                            finish();
+                            overridePendingTransition(0,0);
+                        })
+                        .show();
+                return;
+            } else {
+                BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.win);
+                int shardsEarned = UserManager.getInstance().valuatePokemon(pokemon.toPokemonDTO());
+                totalShardsEarned += shardsEarned;
+                int exp = ArenaEngine.gainExp(playerPokemon, pokemon);
+                int levelsGained = (int) (
+                        (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3)))  >= exp ?
+                                (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3))) + 1 :
+                                (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3))));
+
+                playerPokemon.setExp(exp);
+                playerPokemon.setLevel(playerPokemon.getLevel() + levelsGained);
+
+                UserManager.getInstance().updateShards(shardsEarned);
+                UserManager.getInstance().updateUserEarnedShardsByBattling(shardsEarned);
+                UserManager.getInstance().updateHighestFloorWin(floor);
+
+
+
+                DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("exp").setValue(exp);
+                DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("level").setValue(levelsGained);
+
+                new AlertDialog.Builder(BattleScene.this)
+                        .setTitle("You won!")
+                        .setMessage(String.format("Onwards to Floor %,02d! Your battle in this current floor earned you %,d shards!", floor + 1, shardsEarned))
+                        .setNegativeButton("Return Home", (dialog, which) -> {
+                            UserManager.getInstance().updateUserLastBattledPokemon(playerPokemon.toPokemonDTO());
+                            finish();
+                            overridePendingTransition(0,0);
+                        }).show();
+            }
+        }, 3000);
+    }
+
     private void attachListeners(BattlePokemon pokemon) {
         pokemon.setMoveUseListener(new MoveUseListener() {
             @Override
@@ -392,46 +437,7 @@ public class BattleScene extends AppCompatActivity {
                 battleLogger.displayBattleLog(Localizer.formatPokemonName(pokemon.getName()) + " fainted.");
                 battleLog.postDelayed(() -> refreshHp(), 300);
 
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    if (pokemon.getCollectionId() != null) {
-                        BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.lose);
-                        new AlertDialog.Builder(BattleScene.this)
-                                .setTitle("You Lost...")
-                                .setMessage(String.format("You reached the Floor %,02d before you and your Pokemon fell into defeat.. You have earned %,d shards in this battle.", floor, totalShardsEarned))
-                                .setNegativeButton("Return Home", (dialog, which) -> {
-                                    UserManager.getInstance().updateUserLastBattledPokemon(playerPokemon.toPokemonDTO());
-                                    finish();
-                                    overridePendingTransition(0,0);
-                                })
-                                .show();
-                        return;
-                    } else {
-                        BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.win);
-                        int shardsEarned = UserManager.getInstance().valuatePokemon(pokemon.toPokemonDTO());
-                        totalShardsEarned += shardsEarned;
-                        int exp = ArenaEngine.gainExp(playerPokemon, pokemon);
-                        int levelsGained = (int) (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3)));
-
-                        playerPokemon.setExp(exp);
-                        playerPokemon.setLevel(playerPokemon.getLevel() + levelsGained);
-
-                        UserManager.getInstance().updateUserEarnedShardsByBattling(shardsEarned);
-                        UserManager.getInstance().updateHighestFloorWin(floor);
-
-
-                        DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("exp").setValue(exp);
-                        DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("level").setValue(levelsGained);
-
-                        new AlertDialog.Builder(BattleScene.this)
-                                .setTitle("You won!")
-                                .setMessage(String.format("Onwards to Floor %,02d! Your battle in this current floor earned you %,d shards!", floor + 1, shardsEarned))
-                                .setNegativeButton("Return Home", (dialog, which) -> {
-                                    UserManager.getInstance().updateUserLastBattledPokemon(playerPokemon.toPokemonDTO());
-                                    finish();
-                                    overridePendingTransition(0,0);
-                                }).show();
-                    }
-                }, 3000);
+                conclude(pokemon);
             }
 
             @Override

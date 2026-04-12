@@ -3,11 +3,16 @@ package sickbay.pokenamon.system.arena.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.firebase.database.Exclude;
+
 public class PokemonSprite implements Parcelable {
     private String front;
     private String back;
     private String frontFallback;
     private String backFallback;
+
+    @Exclude
+    public int getStability(){return 0;}
 
     public PokemonSprite() {}
 

@@ -18,11 +18,13 @@ import com.bumptech.glide.Glide;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.system.arena.enums.DamageClass;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.network.PokeAPIManager;
@@ -34,9 +36,11 @@ import sickbay.pokenamon.util.Localizer;
 
 public class PokemonView extends AppCompatActivity {
     private final String STAR = "★";
-    private TextView backButton, sellButton, entry, name, rarity, level, exp, type1, type2, move1Name, move1Pp, move2Name, move2Pp, move3Name, move3Pp, move4Name, move4Pp, statHp, statAttack, statDefense, statSpAttack, statSpDefense, statSpeed;
+    private TextView backButton, sellButton, entry, name, rarity, level, exp, type1, type2, statHp, statAttack, statDefense, statSpAttack, statSpDefense, statSpeed;
     private ProgressBar levelBar, hpBar, attackBar, defenseBar, spAttackBar, spDefenseBar, speedBar;
-    private ImageView sprite, move1Type, move2Type, move3Type, move4Type;
+    private ImageView sprite;
+
+    private TextView move1Name, move1Type, move1Pp, move1Class,  move2Name, move2Type, move2Pp, move2Class, move3Name, move3Type, move3Pp, move3Class, move4Name, move4Type, move4Pp, move4Class;
     private LinearLayout move1, move2, move3, move4, selectPokemon;
     private PokemonDTO pokemon;
     private List<BattleMove> queriedMoves;
@@ -74,10 +78,18 @@ public class PokemonView extends AppCompatActivity {
         move2Name = findViewById(R.id.pokemon_view_move2Name);
         move3Name = findViewById(R.id.pokemon_view_move3Name);
         move4Name = findViewById(R.id.pokemon_view_move4Name);
+        move1Type = findViewById(R.id.pokemon_view_move1Type);
+        move2Type = findViewById(R.id.pokemon_view_move2Type);
+        move3Type = findViewById(R.id.pokemon_view_move3Type);
+        move4Type = findViewById(R.id.pokemon_view_move4Type);
         move1Pp = findViewById(R.id.pokemon_view_move1Pp);
         move2Pp = findViewById(R.id.pokemon_view_move2Pp);
         move3Pp = findViewById(R.id.pokemon_view_move3Pp);
         move4Pp = findViewById(R.id.pokemon_view_move4Pp);
+        move1Class = findViewById(R.id.pokemon_view_move1Class);
+        move2Class = findViewById(R.id.pokemon_view_move2Class);
+        move3Class = findViewById(R.id.pokemon_view_move3Class);
+        move4Class = findViewById(R.id.pokemon_view_move4Class);
         levelBar = findViewById(R.id.pokemon_view_expBar);
         hpBar = findViewById(R.id.pokemon_view_hpBar);
         attackBar = findViewById(R.id.pokemon_view_attackBar);
@@ -109,7 +121,6 @@ public class PokemonView extends AppCompatActivity {
             startActivity(new Intent(this, Battle.class));
             finish();
             overridePendingTransition(0,0);
-            Toast.makeText(this, "Selected Pokemon for battle", Toast.LENGTH_SHORT).show();
         });
 
         sprite.setOnClickListener(v -> {
@@ -119,7 +130,7 @@ public class PokemonView extends AppCompatActivity {
                 cryPlayer.prepare();
                 cryPlayer.start();
             } catch (IOException e) {
-                Log.e("GachaPull", e.getMessage(), e);
+                Log.e("PokemonViewCry", e.getMessage(), e);
             }
         });
 
@@ -133,7 +144,7 @@ public class PokemonView extends AppCompatActivity {
 
                 @Override
                 public void onError(String message) {
-                    Log.e("PokemonView", message);
+                    Log.e("PokemonViewMoveHydration", message);
                 }
             });
         }
@@ -142,7 +153,7 @@ public class PokemonView extends AppCompatActivity {
     private void hydrateViews(PokemonDTO pokemon, List<BattleMove> queriedMoves) {
         String pokedexId = String.format("#%04d", pokemon.getPokedexId());
         String pokemonName = Localizer.formatPokemonName(pokemon.getName());
-        String pokemonLevel = String.valueOf(pokemon.getLevel());
+        String pokemonLevel = String.format("Lv. %02d", pokemon.getLevel());
         String pokemonType1 = Localizer.toTitleCase(pokemon.getTypes().get(0));
         String pokemonType2 = null;
 
@@ -154,13 +165,13 @@ public class PokemonView extends AppCompatActivity {
 
         int pokemonRarity = pokemon.getRarity();
         int pokemonExp = pokemon.getExp();
-        int pokemonRequirementExp = pokemon.getLevel() > 1 ? pokemonExp^3 : 9;
+        int pokemonRequirementExp = pokemon.getLevel() > 1 ? (int) Math.pow(pokemon.getLevel(), 3) : 9;
 
         entry.setText(pokedexId);
         rarity.setText(STAR.repeat(pokemonRarity));
         name.setText(pokemonName);
-        level.setText("Lv. " + pokemonLevel);
-        exp.setText(pokemonExp + " / " + pokemonRequirementExp);
+        level.setText(pokemonLevel);
+        exp.setText(Math.max(pokemonExp - pokemonRequirementExp, 0) + " / " + Math.abs(pokemonRequirementExp - pokemonExp));
         type1.setText(pokemonType1);
         PokemonListAdapter.setTypeStrokeColor(type1, pokemonType1);
 
@@ -176,9 +187,16 @@ public class PokemonView extends AppCompatActivity {
             int i = queriedMoves.indexOf(move);
             TextView currMoveName = i == 0 ? move1Name: i == 1 ? move2Name: i == 2 ? move3Name : move4Name;
             TextView currMovePp = i == 0 ? move1Pp: i == 1 ? move2Pp: i == 2 ? move3Pp : move4Pp;
+            TextView currMoveType = i == 0 ? move1Type: i == 1 ? move2Type: i == 2 ? move3Type : move4Type;
+            TextView currMoveClass = i == 0 ? move1Class: i == 1 ? move2Class: i == 2 ? move3Class : move4Class;
 
             currMoveName.setText(Localizer.formatPokemonMove(queriedMoves.get(i).getName()));
-            currMovePp.setText(String.valueOf(queriedMoves.get(i).getTotalPp()));
+            currMovePp.setText(queriedMoves.get(i).getTotalPp() + " / " + queriedMoves.get(i).getTotalPp());
+            currMoveType.setText(Localizer.toTitleCase(Localizer.formatEnumString(queriedMoves.get(i).getType().name())));
+            currMoveClass.setText(Localizer.formatEnumString(queriedMoves.get(i).getDamageClass().name()));
+
+            PokemonListAdapter.setTypeStrokeColor(currMoveType, Localizer.formatEnumString(queriedMoves.get(i).getType().name()));
+            setMoveClassBackgroundColor(currMoveClass, Localizer.formatEnumString(queriedMoves.get(i).getDamageClass().name()));
         }
 
         levelBar.post(() -> {
@@ -217,5 +235,17 @@ public class PokemonView extends AppCompatActivity {
         }
 
         ((TextView) selectPokemon.getChildAt(0)).setText("Battle with " + Localizer.formatPokemonName(pokemonName));
+    }
+
+    private void setMoveClassBackgroundColor(TextView view, String moveClass) {
+        String color = "";
+
+        if (moveClass.toLowerCase().equals("physical")) {
+            view.setBackgroundColor(getResources().getColor(R.color.fire, null));
+        } else if (moveClass.toLowerCase().equals("special")) {
+            view.setBackgroundColor(getResources().getColor(R.color.dragon, null));
+        } else {
+            view.setBackgroundColor(getResources().getColor(R.color.normal, null));
+        }
     }
 }

@@ -15,12 +15,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
+import java.util.Arrays;
 import java.util.List;
 
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.core.Battle;
 import sickbay.pokenamon.core.PokemonView;
 import sickbay.pokenamon.db.dto.PokemonDTO;
+import sickbay.pokenamon.system.arena.enums.DamageClass;
 import sickbay.pokenamon.system.arena.enums.Type;
 import sickbay.pokenamon.util.Localizer;
 
@@ -96,8 +98,9 @@ public class PokemonListAdapter extends RecyclerView.Adapter<PokemonListAdapter.
         GradientDrawable bg = (GradientDrawable) view.getBackground();
         Context ctx = view.getContext().getApplicationContext();
         String packageName = ctx.getPackageName();
+        String color = type.toLowerCase();
 
         bg.mutate();
-        bg.setStroke(2, ctx.getColor(ctx.getResources().getIdentifier(type.toLowerCase(), "color", packageName)));
+        bg.setStroke(2, ctx.getColor(ctx.getResources().getIdentifier(color, "color", packageName)));
     }
 }

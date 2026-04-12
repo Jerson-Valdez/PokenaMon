@@ -71,7 +71,7 @@ public class Gacha extends AppCompatActivity {
         draw1x.setEnabled(true);
         draw10x.setEnabled(true);
         pokeball.setTranslationX(0);
-        tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins()));
+        tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getShards()));
     }
 
     private void init() {
@@ -80,7 +80,7 @@ public class Gacha extends AppCompatActivity {
         pokeball = findViewById(R.id.pokeball);
         tvCoins = findViewById(R.id.coins);
 
-        tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins()));
+        tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getShards()));
         Navigation.setup(this);
     }
 
@@ -88,7 +88,7 @@ public class Gacha extends AppCompatActivity {
         draw10x.setOnClickListener(v -> {
             if (isFinishing() || isDestroyed()) return;
 
-            if (UserManager.getInstance().getUser().getCoins() >= DRAW_10X) {
+            if (UserManager.getInstance().getUser().getShards() >= DRAW_10X) {
                 gacha(10, DRAW_10X);
             } else {
                 Toast.makeText(context, "Not enough coins", Toast.LENGTH_SHORT).show();
@@ -98,7 +98,7 @@ public class Gacha extends AppCompatActivity {
         draw1x.setOnClickListener(v -> {
             if (isFinishing() || isDestroyed()) return;
 
-            if (UserManager.getInstance().getUser().getCoins() >= DRAW_1X) {
+            if (UserManager.getInstance().getUser().getShards() >= DRAW_1X) {
                 gacha(1, DRAW_1X);
             } else {
                 Toast.makeText(context, "Not enough coins", Toast.LENGTH_SHORT).show();
@@ -112,7 +112,7 @@ public class Gacha extends AppCompatActivity {
 
         double[] chosenRand = new double[pulls];
 
-        UserManager.getInstance().updateCoins(-price)
+        UserManager.getInstance().updateShards(-price)
                 .addOnCompleteListener(Gacha.this, (task) -> {
                     if (task.isSuccessful()) {
                         for (int i = 0; i < chosenRand.length; i++) {
@@ -122,7 +122,7 @@ public class Gacha extends AppCompatActivity {
                         animatePokeballAndFetch(chosenRand, new FetchGachaListener() {
                             @Override
                             public void onComplete(ArrayList<PokemonDTO> results) {
-                                tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins()));
+                                tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getShards()));
 
                                 draw1x.setEnabled(true);
                                 draw10x.setEnabled(true);
@@ -143,8 +143,8 @@ public class Gacha extends AppCompatActivity {
                                 draw1x.setEnabled(true);
                                 draw10x.setEnabled(true);
 
-                                UserManager.getInstance().updateCoins(price)
-                                        .addOnCompleteListener(Gacha.this, (childTask) -> tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getCoins())))
+                                UserManager.getInstance().updateShards(price)
+                                        .addOnCompleteListener(Gacha.this, (childTask) -> tvCoins.setText(String.format("%,d", UserManager.getInstance().getUser().getShards())))
                                         .addOnFailureListener(Gacha.this, (error) -> {
                                             Log.d("Gacha", error.getMessage(), error);
                                             Toast.makeText(context, "Sorry! An error has occurred..", Toast.LENGTH_SHORT).show();

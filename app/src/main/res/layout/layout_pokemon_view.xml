@@ -60,6 +60,7 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:layout_marginTop="100dp"
+            android:scrollbars="none"
             >
             <LinearLayout
                 android:layout_width="match_parent"
@@ -87,7 +88,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginVertical="4dp"
+                            android:layout_marginVertical="8dp"
                             >
                             <TextView
                                 android:id="@+id/pokemon_view_type1"
@@ -153,7 +154,15 @@
                             android:textSize="14sp"
                             android:textColor="@color/text"
                             android:layout_marginBottom="4dp"/>
-
+                        <TextView
+                            android:id="@+id/pokemon_view_exp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0/456"
+                            android:textColor="@color/textVariant"
+                            android:textStyle="bold"
+                            android:textSize="12sp"
+                            />
                         <ProgressBar
                             style="?android:attr/progressBarStyleHorizontal"
                             android:id="@+id/pokemon_view_expBar"
@@ -165,15 +174,6 @@
                             android:progressTint="@color/textVariant"
                             android:max="100"
                             android:progress="56"
-                            />
-                        <TextView
-                            android:id="@+id/pokemon_view_exp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0/456"
-                            android:textColor="@color/textVariant"
-                            android:textStyle="bold"
-                            android:textSize="12sp"
                             />
                     </LinearLayout>
                 </LinearLayout>
@@ -525,7 +525,6 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:orientation="horizontal"
-                                    android:layout_marginEnd="4dp"
                                     >
                                     <TextView
                                         android:id="@+id/pokemon_view_move1Name"
@@ -555,17 +554,46 @@
                                         />
                                 </LinearLayout>
 
-                                <ImageView
-                                    android:id="@+id/pokemon_view_move1Type"
-                                    android:layout_marginTop="4dp"
-                                    android:layout_width="40dp"
-                                    android:layout_height="20dp"
-                                    />
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:layout_marginTop="8dp"
+                                    >
+                                    <TextView
+                                        android:id="@+id/pokemon_view_move1Type"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:textSize="10sp"
+                                        android:textColor="@color/text"
+                                        android:background="@drawable/type"/>
+
+                                    <Space
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        />
+
+                                    <TextView
+                                        android:id="@+id/pokemon_view_move1Class"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:textSize="10sp"
+                                        android:textColor="@color/text"
+                                        android:background="@drawable/move_class"
+                                        />
+                                </LinearLayout>
+
+
                             </LinearLayout>
                         </LinearLayout>
 
                         <LinearLayout
-                            android:id="@+id/pokemon_view_move2"
+                            android:id="@+id/pokemon_view_move3"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
@@ -584,7 +612,102 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:orientation="horizontal"
-                                    android:layout_marginEnd="4dp"
+                                    >
+                                    <TextView
+                                        android:id="@+id/pokemon_view_move3Name"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Name"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        android:textColor="@color/text"
+                                        />
+
+                                    <Space
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        />
+
+                                    <TextView
+                                        android:id="@+id/pokemon_view_move3Pp"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Pp"
+                                        android:textSize="14sp"
+                                        android:textStyle="bold"
+                                        android:textColor="@color/text"
+                                        />
+                                </LinearLayout>
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:layout_marginTop="8dp"
+                                    >
+                                    <TextView
+                                        android:id="@+id/pokemon_view_move3Type"
+                                        android:layout_marginTop="4dp"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:textSize="10sp"
+                                        android:textColor="@color/text"
+                                        android:background="@drawable/type"/>
+
+                                    <Space
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        />
+
+                                    <TextView
+                                        android:id="@+id/pokemon_view_move3Class"
+                                        android:layout_marginTop="4dp"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:textSize="10sp"
+                                        android:textColor="@color/text"
+                                        android:background="@drawable/move_class"
+                                        />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        >
+
+                        <LinearLayout
+                            android:id="@+id/pokemon_view_move2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="8dp"
+                            android:gravity="center_vertical"
+                            android:background="@drawable/rectangle"
+                            android:layout_marginBottom="8dp"
+                            >
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="match_parent"
+                                android:orientation="vertical"
+                                >
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
                                     >
                                     <TextView
                                         android:id="@+id/pokemon_view_move2Name"
@@ -614,56 +737,21 @@
                                         />
                                 </LinearLayout>
 
-                                <ImageView
-                                    android:id="@+id/pokemon_view_move2Type"
-                                    android:layout_width="42dp"
-                                    android:layout_height="20dp"
-                                    android:layout_marginTop="4dp" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        >
-
-                        <LinearLayout
-                            android:id="@+id/pokemon_view_move3"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:padding="8dp"
-                            android:gravity="center_vertical"
-                            android:background="@drawable/rectangle"
-                            android:layout_marginBottom="8dp"
-                            >
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
-                                android:layout_height="match_parent"
-                                android:orientation="vertical"
-                                >
-
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:orientation="horizontal"
-                                    android:layout_marginEnd="4dp"
+                                    android:layout_marginTop="8dp"
                                     >
                                     <TextView
-                                        android:id="@+id/pokemon_view_move3Name"
+                                        android:id="@+id/pokemon_view_move2Type"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="Name"
-                                        android:textSize="14sp"
-                                        android:textStyle="bold"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:textSize="10sp"
                                         android:textColor="@color/text"
-                                        android:layout_marginEnd="4dp"
-                                        />
+                                        android:background="@drawable/type"/>
 
                                     <Space
                                         android:layout_width="0dp"
@@ -672,22 +760,16 @@
                                         />
 
                                     <TextView
-                                        android:id="@+id/pokemon_view_move3Pp"
+                                        android:id="@+id/pokemon_view_move2Class"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="Pp"
-                                        android:textSize="14sp"
-                                        android:textStyle="bold"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:textSize="10sp"
                                         android:textColor="@color/text"
+                                        android:background="@drawable/move_class"
                                         />
                                 </LinearLayout>
-
-                                <ImageView
-                                    android:id="@+id/pokemon_view_move3Type"
-                                    android:layout_marginTop="4dp"
-                                    android:layout_width="40dp"
-                                    android:layout_height="20dp"
-                                    />
                             </LinearLayout>
                         </LinearLayout>
 
@@ -711,7 +793,6 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:orientation="horizontal"
-                                    android:layout_marginEnd="4dp"
                                     >
                                     <TextView
                                         android:id="@+id/pokemon_view_move4Name"
@@ -721,7 +802,6 @@
                                         android:textSize="14sp"
                                         android:textStyle="bold"
                                         android:textColor="@color/text"
-                                        android:layout_marginEnd="4dp"
                                         />
 
                                     <Space
@@ -741,12 +821,41 @@
                                         />
                                 </LinearLayout>
 
-                                <ImageView
-                                    android:id="@+id/pokemon_view_move4Type"
-                                    android:layout_marginTop="4dp"
-                                    android:layout_width="40dp"
-                                    android:layout_height="20dp"
-                                    />
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:layout_marginTop="8dp"
+                                    >
+                                    <TextView
+                                        android:id="@+id/pokemon_view_move4Type"
+                                        android:layout_marginTop="4dp"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:textSize="10sp"
+                                        android:textColor="@color/text"
+                                        android:background="@drawable/type"/>
+
+                                    <Space
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        />
+
+                                    <TextView
+                                        android:id="@+id/pokemon_view_move4Class"
+                                        android:layout_marginTop="4dp"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:paddingHorizontal="8dp"
+                                        android:paddingVertical="4dp"
+                                        android:textSize="10sp"
+                                        android:textColor="@color/text"
+                                        android:background="@drawable/move_class"
+                                        />
+                                </LinearLayout>
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>

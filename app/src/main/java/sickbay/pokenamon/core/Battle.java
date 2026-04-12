@@ -2,6 +2,7 @@ package sickbay.pokenamon.core;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -13,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.Pokemon;
 import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.system.home.BackgroundMusicManager;
@@ -24,6 +26,7 @@ public class Battle extends AppCompatActivity {
     ImageView playerSprite;
     TextView initial, usernameField, dailyStreak, highestFloor, shardsEarned, playerName, playerHp, playerLevel;
     ProgressBar playerExpBar, playerHpBar;
+    PokemonDTO selectedPokemon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,8 +70,12 @@ public class Battle extends AppCompatActivity {
         continueButton = findViewById(R.id.continueButton);
 
         battleButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, BattleScene.class);
-            intent.putExtra("player", UserManager.getInstance().getSelectedPokemonForBattle());
+            startActivity(new Intent(this, BattleScene.class));
+        });
+
+        playerSprite.setOnClickListener(v -> {
+            Intent intent = new Intent(this, PokemonView.class);
+            intent.putExtra("pokemon", selectedPokemon);
             startActivity(intent);
         });
 
@@ -86,32 +93,32 @@ public class Battle extends AppCompatActivity {
     }
 
     private void hydrateSelectedPokemon() {
-        Pokemon pkmn = UserManager.getInstance().getUser().getLastBattledPokemon() != null ? UserManager.getInstance().getUser().getLastBattledPokemon().toPokemon() : null;
-
-        if (UserManager.getInstance().getSelectedPokemonForBattle() != null) {
-            pkmn = UserManager.getInstance().getSelectedPokemonForBattle().toPokemon();
+        if (UserManager.getInstance().getUser().getLastBattledPokemon() != null) {
+            selectedPokemon = UserManager.getInstance().getUser().getLastBattledPokemon();
+        } if (UserManager.getInstance().getSelectedPokemonForBattle() != null) {
+            selectedPokemon = UserManager.getInstance().getSelectedPokemonForBattle();
         }
 
-        if (pkmn != null) {
-            BattlePokemon selectedPokemon = new BattlePokemon(pkmn);
+        if (selectedPokemon != null) {
+            BattlePokemon battlePokemon = new BattlePokemon(selectedPokemon.toPokemon());
 
             noSelectedPokemonDisplay.setVisibility(LinearLayout.GONE);
             selectedPokemonDisplay.setVisibility(LinearLayout.VISIBLE);
 
-            playerName.setText(Localizer.formatPokemonName(selectedPokemon.getName()));
-            playerLevel.setText(String.format("Lv. %02d", selectedPokemon.getLevel()));
+            playerName.setText(Localizer.formatPokemonName(battlePokemon.getName()));
+            playerLevel.setText(String.format("Lv. %02d", battlePokemon.getLevel()));
 
-            playerHpBar.setMax(selectedPokemon.getTotalHp());
-            playerHpBar.setProgress(selectedPokemon.getCurrentHp());
+            playerHpBar.setMax(battlePokemon.getTotalHp());
+            playerHpBar.setProgress(battlePokemon.getCurrentHp());
 
-            playerHp.setText(String.format("%,d / %,d", selectedPokemon.getCurrentHp(), selectedPokemon.getTotalHp()));
+            playerHp.setText(String.format("%,d / %,d", battlePokemon.getCurrentHp(), battlePokemon.getTotalHp()));
 
-            playerExpBar.setMax((selectedPokemon.getLevel() > 1 ? selectedPokemon.getLevel() ^ 3 : 9));
-            playerExpBar.setProgress(selectedPokemon.getExp());
+            playerExpBar.setMax((battlePokemon.getLevel() > 1 ? battlePokemon.getLevel() ^ 3 : 9));
+            playerExpBar.setProgress(battlePokemon.getExp());
 
             Glide.with(this)
-                    .load(selectedPokemon.getSprite().getFront())
-                    .error(selectedPokemon.getSprite().getFrontFallback())
+                    .load(battlePokemon.getSprite().getFront())
+                    .error(battlePokemon.getSprite().getFrontFallback())
                     .into(playerSprite);
 
             battleButtons.setVisibility(LinearLayout.VISIBLE);

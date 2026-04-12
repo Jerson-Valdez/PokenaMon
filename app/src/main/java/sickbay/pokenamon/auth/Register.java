@@ -12,6 +12,10 @@ import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
+
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.core.Home;
@@ -106,9 +110,20 @@ public class Register extends AppCompatActivity {
                     }
                 },
                 (error) -> {
-                    toggleFields(false);
+                    toggleFields(true);
                     Log.e("Register", error.getMessage(), error);
-                    Toast.makeText(context, "Sorry! An error has occurred..", Toast.LENGTH_LONG).show();
+
+                    String errorMessage = "Sorry! An error has occurred..";
+
+                    if (error instanceof FirebaseAuthWeakPasswordException) {
+                        errorMessage = "Use a stronger password!";
+                    } else if (error instanceof FirebaseAuthInvalidCredentialsException) {
+                        errorMessage = "Please use a valid email address!";
+                    } else if (error instanceof FirebaseAuthUserCollisionException) {
+                        errorMessage = "The account already exists!";
+                    }
+
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show();
                 });
     }
 }

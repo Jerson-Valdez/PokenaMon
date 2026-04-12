@@ -6,7 +6,7 @@ public class User {
     private String uid;
     private String username;
     private String email;
-    private int coins;
+    private int shards;
     private int wins;
     private int pokemonCount;
     private int pokemonSold;
@@ -22,7 +22,7 @@ public class User {
         this.uid = uid;
         this.username = username;
         this.email = email;
-        this.coins = 1000;
+        this.shards = 1000;
         this.wins = 0;
         this.pokemonCount = 0;
         this.streak = 1;
@@ -50,12 +50,12 @@ public class User {
         this.email = email;
     }
 
-    public int getCoins() {
-        return coins;
+    public int getShards() {
+        return shards;
     }
 
-    public void setCoins(int coins) {
-        this.coins = coins;
+    public void setShards(int shards) {
+        this.shards = shards;
     }
 
     public int getWins() {
