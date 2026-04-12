@@ -199,11 +199,6 @@ public class ArenaRegistry {
             "frost-breath", "sunsteel-strike", "moongeist-beam", "photon-geyser"
     ));
 
-    // Fail if moves second
-    public static final Set<String> FAILS_IF_SECOND = new HashSet<>(List.of(
-            "fake-out"  // only works on first turn and if user moves first
-    ));
-
     // Cause the user to faint
     public static final Set<String> USER_FAINTS = new HashSet<>(List.of(
             "explosion", "self-destruct", "misty-explosion", "healing-wish", "lunar-dance"
@@ -454,10 +449,6 @@ public class ArenaRegistry {
 
     public static boolean isLockIn(BattleMove move) {
         return LOCK_IN.contains(move.getName());
-    }
-
-    public static boolean failsIfSecond(BattleMove move) {
-        return FAILS_IF_SECOND.contains(move.getName());
     }
 
     public static boolean invulnerableDuringCharge(BattleMove move) {
