@@ -350,23 +350,19 @@ public class BattleScene extends AppCompatActivity {
                 BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.win);
                 int shardsEarned = UserManager.getInstance().valuatePokemon(pokemon.toPokemonDTO());
                 totalShardsEarned += shardsEarned;
-                int exp = ArenaEngine.gainExp(playerPokemon, pokemon);
-                int levelsGained = (int) (
-                        (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3)))  >= exp ?
-                                (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3))) + 1 :
-                                (exp / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3))));
+                int expGained = ArenaEngine.gainExp(playerPokemon, pokemon);
+                double expRatio =  expGained / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3));
+                int levelsGained = (int) Math.max(1, Math.floor(expRatio));
 
-                playerPokemon.setExp(exp);
+                playerPokemon.setExp(playerPokemon.getExp() + expGained);
                 playerPokemon.setLevel(playerPokemon.getLevel() + levelsGained);
 
                 UserManager.getInstance().updateShards(shardsEarned);
                 UserManager.getInstance().updateUserEarnedShardsByBattling(shardsEarned);
                 UserManager.getInstance().updateHighestFloorWin(floor);
 
-
-
-                DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("exp").setValue(exp);
-                DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("level").setValue(levelsGained);
+                DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("exp").setValue(playerPokemon.getExp());
+                DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(playerPokemon.getCollectionId()).child("level").setValue(playerPokemon.getLevel());
 
                 new AlertDialog.Builder(BattleScene.this)
                         .setTitle("You won!")
