@@ -83,6 +83,6 @@ public class Localizer {
     }
 
     public static String formatEnum(String enumString) {
-        return toTitleCase(enumString.toUpperCase().replaceAll("_", enumString.contains("SP") ? "." : " "));
+        return toTitleCase(enumString.toUpperCase().replaceAll("_", " "));
     }
 }

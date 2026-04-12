@@ -10,7 +10,6 @@ public class AttackAction {
 
     BattlePokemon pokemon;
     BattleMove move;
-
     private ActionFinishListener listener;
 
     public AttackAction(BattlePokemon pokemon, BattleMove move) {
