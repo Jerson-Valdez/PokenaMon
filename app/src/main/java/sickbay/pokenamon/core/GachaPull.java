@@ -212,11 +212,14 @@ public class GachaPull extends AppCompatActivity {
     }
 
     private void finishShowcase() {
-        cryPlayer.stop();
-        cryPlayer = null;
+        if (cryPlayer != null) {
+                cryPlayer.stop();
+                cryPlayer.release();
+                cryPlayer = null;
+            }
 
-        finish();
-        overridePendingTransition(0,0);
+            finish();
+            overridePendingTransition(0, 0);
     }
 
     private void nextShowcase() {
