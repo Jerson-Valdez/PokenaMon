@@ -5,13 +5,13 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 
 import sickbay.pokenamon.model.Pokemon;
-import sickbay.pokenamon.system.arena.enums.StatId;
+import sickbay.pokenamon.model.enums.StatId;
 import sickbay.pokenamon.system.arena.events.BattlePokemonListener;
 import sickbay.pokenamon.system.arena.events.DamageEffectListener;
 import sickbay.pokenamon.system.arena.events.MoveUseListener;
-import sickbay.pokenamon.system.arena.model.Ailment;
-import sickbay.pokenamon.system.arena.model.StatBuff;
-import sickbay.pokenamon.system.arena.model.VolatileAilment;
+import sickbay.pokenamon.model.Ailment;
+import sickbay.pokenamon.model.StatBuff;
+import sickbay.pokenamon.model.VolatileAilment;
 public class BattlePokemon extends Pokemon {
     int totalHp;
     int currentHp;
@@ -20,20 +20,20 @@ public class BattlePokemon extends Pokemon {
     HashSet<VolatileAilment> volatileAilments;
     HashSet<StatBuff> buffs;
     BattleMove lastMoveUsed;
-
     boolean suspended;
     boolean lockedIn;
     boolean charging;
     int turns;
-
 
     private BattlePokemonListener battlePokemonListener;
     private DamageEffectListener damageEffectListener;
     private MoveUseListener moveUseListener;
 
     public BattlePokemon(Pokemon pokemon) {
-        super(pokemon.getPokedexId(),
+        super(pokemon.getCollectionId(),
+                pokemon.getPokedexId(),
                 pokemon.getName(),
+                pokemon.getRarity(),
                 pokemon.getLevel(),
                 pokemon.getExp(),
                 pokemon.getTypes(),
@@ -42,9 +42,8 @@ public class BattlePokemon extends Pokemon {
                 pokemon.getWeight(),
                 pokemon.getHeight(),
                 pokemon.getStats(),
-                pokemon.getMoves());
-        super.setCollectionId(pokemon.getCollectionId());
-        setCollectionId(pokemon.getCollectionId());
+                pokemon.getMoves(),
+                pokemon.getSummonedAt());
 
         totalHp = pokemon.getName().equals(ArenaRegistry.SINGLE_HP_POKEMON) ? 1 : pokemon.getStats().get(StatId.HP).getEffectiveStat(pokemon.getLevel());
         currentHp = totalHp;
@@ -52,7 +51,7 @@ public class BattlePokemon extends Pokemon {
         buffs = new HashSet<>();
         buffs.add(new StatBuff(StatId.ACCURACY, 0, 0));
         buffs.add(new StatBuff(StatId.EVASION, 0, 0));
-        ailment = new Ailment(sickbay.pokenamon.system.arena.enums.Ailment.NONE, 0, 0, 0);
+        ailment = new Ailment(sickbay.pokenamon.model.enums.Ailment.NONE, 0, 0, 0);
         volatileAilments = new HashSet<>();
     }
 
@@ -67,7 +66,7 @@ public class BattlePokemon extends Pokemon {
 
     public void setAilment(Ailment ailment) { this.ailment = ailment; }
 
-    public VolatileAilment getVolatileAilment(sickbay.pokenamon.system.arena.enums.VolatileAilment ailment) {
+    public VolatileAilment getVolatileAilment(sickbay.pokenamon.model.enums.VolatileAilment ailment) {
         return volatileAilments.stream().filter(v -> v.getType() == ailment).collect(Collectors.toList()).get(0);
     }
 
@@ -77,8 +76,8 @@ public class BattlePokemon extends Pokemon {
 
     public void addVolatileAilment(VolatileAilment ailment) { volatileAilments.add(ailment); }
     public void setVolatileAilment(VolatileAilment ailment) { removeVolatileAilment(ailment.getType()); addVolatileAilment(ailment); }
-    public void removeVolatileAilment(sickbay.pokenamon.system.arena.enums.VolatileAilment ailment) { volatileAilments.removeIf(v -> v.getType() == ailment); }
-    public boolean hasVolatileElement(sickbay.pokenamon.system.arena.enums.VolatileAilment ailment) { return volatileAilments.stream().anyMatch(v -> v.getType() == ailment); }
+    public void removeVolatileAilment(sickbay.pokenamon.model.enums.VolatileAilment ailment) { volatileAilments.removeIf(v -> v.getType() == ailment); }
+    public boolean hasVolatileElement(sickbay.pokenamon.model.enums.VolatileAilment ailment) { return volatileAilments.stream().anyMatch(v -> v.getType() == ailment); }
 
     public StatBuff getBuff(StatId stat) { return buffs.stream().filter(b -> b.getStat() == stat).collect(Collectors.toList()).get(0); }
     public void addBuff(StatBuff buff) { buffs.add(buff); }
@@ -108,7 +107,6 @@ public class BattlePokemon extends Pokemon {
         setCurrentHp(Math.max(0, getCurrentHp() - damage));
     }
 
-
     public boolean isSuspended() { return suspended; }
 
     public void setSuspended(boolean isSuspended) { this.suspended = isSuspended; }
@@ -136,7 +134,6 @@ public class BattlePokemon extends Pokemon {
     public void setLockedIn(boolean lockedIn) {
         this.lockedIn = lockedIn;
     }
-
 
     public void setBattlePokemonListener(BattlePokemonListener listener) { battlePokemonListener = listener; }
     public void setMoveUseListener(MoveUseListener listener) { moveUseListener = listener; }
@@ -275,8 +272,8 @@ public class BattlePokemon extends Pokemon {
         if (battlePokemonListener != null) battlePokemonListener.onPerishSong(pokemon, turns);
     }
 
-    public void notifyStatChange(BattlePokemon pokemon, StatId statId, int stage) {
-        if (battlePokemonListener != null) battlePokemonListener.onStatChange(pokemon, statId, stage);
+    public void notifyStatChange(BattlePokemon pokemon, StatId statId, int previousStage, int stage) {
+        if (battlePokemonListener != null) battlePokemonListener.onStatChange(pokemon, statId, previousStage, stage);
     }
 
     public void notifyInflict(BattlePokemon pokemon, Ailment ailment) {

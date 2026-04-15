@@ -1,4 +1,4 @@
-package sickbay.pokenamon.system.arena.enums;
+package sickbay.pokenamon.model.enums;
 
 public enum DamageClass {
     PHYSICAL, SPECIAL, STATUS

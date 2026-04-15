@@ -1,6 +1,6 @@
-package sickbay.pokenamon.system.arena.model;
+package sickbay.pokenamon.model;
 
-import sickbay.pokenamon.system.arena.enums.StatId;
+import sickbay.pokenamon.model.enums.StatId;
 
 public class PokemonStat {
     public StatId stat;

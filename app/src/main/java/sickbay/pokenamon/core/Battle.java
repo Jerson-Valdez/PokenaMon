@@ -22,7 +22,7 @@ import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.util.Localizer;
 
 public class Battle extends AppCompatActivity {
-    LinearLayout noSelectedPokemonDisplay, selectedPokemonDisplay, selectPokemonButton, battleButtons, battleButton, forfeitButton, continueButton;
+    LinearLayout noSelectedPokemonDisplay, selectedPokemonDisplay, selectPokemonButton, switchPokemonButton, battleButtons, battleButton, forfeitButton, continueButton;
     ImageView playerSprite;
     TextView initial, usernameField, dailyStreak, highestFloor, shardsEarned, playerName, playerHp, playerLevel;
     ProgressBar playerExpBar, playerHpBar;
@@ -53,6 +53,7 @@ public class Battle extends AppCompatActivity {
         noSelectedPokemonDisplay = findViewById(R.id.noBattlePokemonSelectedDisplay);
         selectedPokemonDisplay = findViewById(R.id.selectedPokemonDisplay);
         selectPokemonButton = findViewById(R.id.selectPokemon);
+        switchPokemonButton = findViewById(R.id.switchPokemon);
         initial = findViewById(R.id.initial);
         usernameField = findViewById(R.id.userNameField);
         dailyStreak = findViewById(R.id.dailyStreak);
@@ -71,6 +72,10 @@ public class Battle extends AppCompatActivity {
 
         battleButton.setOnClickListener(v -> {
             startActivity(new Intent(this, BattleScene.class));
+        });
+
+        switchPokemonButton.setOnClickListener(v -> {
+            startActivity(new Intent(this, Collection.class));
         });
 
         playerSprite.setOnClickListener(v -> {
@@ -113,7 +118,7 @@ public class Battle extends AppCompatActivity {
 
             playerHp.setText(String.format("%,d / %,d", battlePokemon.getCurrentHp(), battlePokemon.getTotalHp()));
 
-            playerExpBar.setMax((battlePokemon.getLevel() > 1 ? battlePokemon.getLevel() ^ 3 : 9));
+            playerExpBar.setMax((battlePokemon.getLevel() > 1 ?  (int) Math.pow(battlePokemon.getLevel(), 3) : 9));
             playerExpBar.setProgress(battlePokemon.getExp());
 
             Glide.with(this)

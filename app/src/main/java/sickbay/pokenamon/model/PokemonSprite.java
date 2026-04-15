@@ -1,4 +1,4 @@
-package sickbay.pokenamon.system.arena.model;
+package sickbay.pokenamon.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;

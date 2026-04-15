@@ -29,15 +29,15 @@ import sickbay.pokenamon.model.Pokemon;
 import sickbay.pokenamon.system.arena.BattleMove;
 import sickbay.pokenamon.system.arena.ArenaRegistry;
 import sickbay.pokenamon.system.arena.BattlePokemon;
-import sickbay.pokenamon.system.arena.enums.Ailment;
-import sickbay.pokenamon.system.arena.enums.DamageClass;
-import sickbay.pokenamon.system.arena.enums.TargetType;
-import sickbay.pokenamon.system.arena.enums.Type;
-import sickbay.pokenamon.system.arena.enums.VolatileAilment;
-import sickbay.pokenamon.system.arena.model.PokemonSprite;
-import sickbay.pokenamon.system.arena.model.PokemonStat;
-import sickbay.pokenamon.system.arena.model.StatBuff;
-import sickbay.pokenamon.system.arena.enums.StatId;
+import sickbay.pokenamon.model.enums.Ailment;
+import sickbay.pokenamon.model.enums.DamageClass;
+import sickbay.pokenamon.model.enums.TargetType;
+import sickbay.pokenamon.model.enums.Type;
+import sickbay.pokenamon.model.enums.VolatileAilment;
+import sickbay.pokenamon.model.PokemonSprite;
+import sickbay.pokenamon.model.PokemonStat;
+import sickbay.pokenamon.model.StatBuff;
+import sickbay.pokenamon.model.enums.StatId;
 import sickbay.pokenamon.system.gacha.GetBattleMoveListener;
 import sickbay.pokenamon.system.gacha.GetBattlePokemonListener;
 import sickbay.pokenamon.system.gacha.GetGachaPokemonListener;
@@ -150,7 +150,11 @@ public class PokeAPIManager {
 
     public void getGachaEnemyPokemon(int playerLevel, GetGachaPokemonListener listener) throws RuntimeException {
         int pokemonId = rand.nextInt(ArenaRegistry.POKEDEX_ENTRY_COUNT) + 1;
-        int level = rand.nextInt(playerLevel) + (rand.nextInt(6) < 3 ? rand.nextInt(playerLevel < 16 ? 2 : 5) + 1 : rand.nextInt(playerLevel < 16 ? 3 : 6) + 1);
+        int baseLevel = Math.max(1, playerLevel);
+        int variance = rand.nextInt(6) < 3
+                ? rand.nextInt(playerLevel < 16 ? 2 : 5) + 1
+                : rand.nextInt(playerLevel < 16 ? 3 : 6) + 1;
+        int level = Math.max(1, Math.min(100, baseLevel + (rand.nextBoolean() ? variance : -variance)));
 
         String query = buildEndpoint(Endpoint.POKEMON, String.valueOf(pokemonId));
 

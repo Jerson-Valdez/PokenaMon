@@ -3,7 +3,6 @@ package sickbay.pokenamon.system.home;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,15 +14,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
-import java.util.Arrays;
 import java.util.List;
 
 import sickbay.pokenamon.R;
-import sickbay.pokenamon.core.Battle;
 import sickbay.pokenamon.core.PokemonView;
 import sickbay.pokenamon.db.dto.PokemonDTO;
-import sickbay.pokenamon.system.arena.enums.DamageClass;
-import sickbay.pokenamon.system.arena.enums.Type;
 import sickbay.pokenamon.util.Localizer;
 
 public class PokemonListAdapter extends RecyclerView.Adapter<PokemonListAdapter.ViewHolder> {

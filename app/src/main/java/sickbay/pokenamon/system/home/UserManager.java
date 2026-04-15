@@ -10,6 +10,7 @@ import com.google.android.gms.tasks.Task;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.User;
+import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.util.Localizer;
 
 public class UserManager {
@@ -62,12 +63,12 @@ public class UserManager {
 
     public void updateUserEarnedShardsBySelling(int amount) {
         currentUser.setEarnedShardsBySelling(currentUser.getEarnedShardsBySelling() + amount);
-        DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("earnedShardsBySelling").setValue(currentUser.getPokemonCount());
+        DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("earnedShardsBySelling").setValue(currentUser.getEarnedShardsBySelling());
     }
 
     public void updateUserEarnedShardsByBattling(int amount) {
         currentUser.setEarnedShardsByBattling(currentUser.getEarnedShardsByBattling() + amount);
-        DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("earnedShardsByBattling").setValue(currentUser.getPokemonCount());
+        DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("earnedShardsByBattling").setValue(currentUser.getEarnedShardsByBattling());
     }
 
     public void updateUserLastBattledPokemon(PokemonDTO pokemon) {
@@ -103,6 +104,17 @@ public class UserManager {
     }
 
     public int valuatePokemon(PokemonDTO pokemon) {
-        return (int) Math.floor(pokemon.getRarity() * 3 + pokemon.getTypes().size() * .5 + pokemon.getLevel() * 2.5 + pokemon.getStats().values().stream().mapToInt(Integer::valueOf).sum() * .085 - pokemon.getExp() * .30);
+        return (int) Math.max(Math.floor(pokemon.getRarity() * 1.5 + pokemon.getTypes().size() * 1.5 + pokemon.getLevel() * .3 + pokemon.getStats().values().stream().mapToInt(Integer::valueOf).sum() * .085 - pokemon.getExp() * .30 / 500), 20);
+    }
+
+    public void updateBattlePokemon(PokemonDTO oldPokemon) {
+        DB.getDatabaseInstance().getUserInventoryReference(currentUser.getUid()).child(oldPokemon.getCollectionId()).setValue(oldPokemon).addOnCompleteListener(
+                (task) -> {
+                    if (task.isSuccessful()) {
+                        updateUserLastBattledPokemon(oldPokemon);
+                        selectedPokemonForBattle = oldPokemon;
+                    }
+                }
+        );
     }
 }

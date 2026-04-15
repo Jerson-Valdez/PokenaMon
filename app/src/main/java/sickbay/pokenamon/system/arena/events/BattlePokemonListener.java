@@ -1,11 +1,10 @@
 package sickbay.pokenamon.system.arena.events;
 
-import sickbay.pokenamon.core.Battle;
 import sickbay.pokenamon.system.arena.BattleMove;
 import sickbay.pokenamon.system.arena.BattlePokemon;
-import sickbay.pokenamon.system.arena.enums.StatId;
-import sickbay.pokenamon.system.arena.model.Ailment;
-import sickbay.pokenamon.system.arena.model.VolatileAilment;
+import sickbay.pokenamon.model.enums.StatId;
+import sickbay.pokenamon.model.Ailment;
+import sickbay.pokenamon.model.VolatileAilment;
 
 public interface BattlePokemonListener {
     void onFaint(BattlePokemon pokemon);
@@ -31,7 +30,7 @@ public interface BattlePokemonListener {
     void onRecoil(BattlePokemon pokemon);
     void onTarShot(BattlePokemon pokemon);
     void onPerishSong(BattlePokemon pokemon, int turns);
-    void onStatChange(BattlePokemon pokemon, StatId statId, int stage);
+    void onStatChange(BattlePokemon pokemon, StatId statId, int previousStage, int stage);
 
     void onFly(BattlePokemon pokemon);
 

@@ -7,10 +7,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import sickbay.pokenamon.db.dto.PokemonDTO;
-import sickbay.pokenamon.system.arena.enums.Type;
-import sickbay.pokenamon.system.arena.model.PokemonSprite;
-import sickbay.pokenamon.system.arena.model.PokemonStat;
-import sickbay.pokenamon.system.arena.enums.StatId;
+import sickbay.pokenamon.model.enums.Type;
+import sickbay.pokenamon.model.enums.StatId;
 
 public class Pokemon {
     private String collectionId;
@@ -26,6 +24,7 @@ public class Pokemon {
     private double height;
     private HashMap<StatId, PokemonStat> stats;
     private String[] moves;
+    private long summonedAt;
 
     public Pokemon(int pokedexId, String name, int level, int exp, Type[] types, PokemonSprite sprite, String cry, double weight, double height, HashMap<StatId, PokemonStat> stats, String[] moves) {
         this.pokedexId = pokedexId;
@@ -42,7 +41,7 @@ public class Pokemon {
     }
 
 
-    public Pokemon(String collectionId, int pokedexId, String name, int rarity, int level, int exp, Type[] types, PokemonSprite sprite, String cry, double weight, HashMap<StatId, PokemonStat> stats, String[] moves) {
+    public Pokemon(String collectionId, int pokedexId, String name, int rarity, int level, int exp, Type[] types, PokemonSprite sprite, String cry, double weight, double height, HashMap<StatId, PokemonStat> stats, String[] moves, long summonedAt) {
         this.collectionId = collectionId;
         this.pokedexId = pokedexId;
         this.name = name;
@@ -53,8 +52,10 @@ public class Pokemon {
         this.sprite = sprite;
         this.cry = cry;
         this.weight = weight;
+        this.height = height;
         this.stats = stats;
         this.moves = moves;
+        this.summonedAt = summonedAt;
     }
 
     public String getCollectionId() { return collectionId; }
@@ -159,6 +160,10 @@ public class Pokemon {
         this.moves = moves;
     }
 
+    public long getSummonedAt() { return summonedAt; }
+
+    public void setSummonedAt(long summonedAt) { this.summonedAt = summonedAt; }
+
     public PokemonDTO toPokemonDTO() {
         ArrayList<String> types = Arrays.stream(this.types).map(t -> t.name().toLowerCase()).collect(Collectors.toCollection(ArrayList::new));
 
@@ -167,7 +172,7 @@ public class Pokemon {
             stats.put(stat.getKey().name(), stat.getValue().getBattleStat());
         }
 
-        PokemonDTO dto = new PokemonDTO(pokedexId, name, rarity, level, exp, weight, height, types, sprite, cry, stats, new ArrayList<>(Arrays.asList(moves)));
+        PokemonDTO dto = new PokemonDTO(pokedexId, name, rarity, level, exp, weight, height, types, sprite, cry, stats, new ArrayList<>(Arrays.asList(moves)), summonedAt);
         dto.setCollectionId(getCollectionId());
 
         return dto;
