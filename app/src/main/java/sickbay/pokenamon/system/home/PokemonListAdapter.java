@@ -19,6 +19,7 @@ import java.util.List;
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.core.PokemonView;
 import sickbay.pokenamon.db.dto.PokemonDTO;
+import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.util.Localizer;
 
 public class PokemonListAdapter extends RecyclerView.Adapter<PokemonListAdapter.ViewHolder> {

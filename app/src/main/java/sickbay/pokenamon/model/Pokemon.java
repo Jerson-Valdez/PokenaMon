@@ -25,6 +25,9 @@ public class Pokemon {
     private HashMap<StatId, PokemonStat> stats;
     private String[] moves;
     private long summonedAt;
+    private long fullHealthCooldown;
+    private int currentHp;
+    private int totalHp;
 
     public Pokemon(int pokedexId, String name, int level, int exp, Type[] types, PokemonSprite sprite, String cry, double weight, double height, HashMap<StatId, PokemonStat> stats, String[] moves) {
         this.pokedexId = pokedexId;
@@ -41,7 +44,7 @@ public class Pokemon {
     }
 
 
-    public Pokemon(String collectionId, int pokedexId, String name, int rarity, int level, int exp, Type[] types, PokemonSprite sprite, String cry, double weight, double height, HashMap<StatId, PokemonStat> stats, String[] moves, long summonedAt) {
+    public Pokemon(String collectionId, int pokedexId, String name, int rarity, int level, int exp, Type[] types, PokemonSprite sprite, String cry, double weight, double height, HashMap<StatId, PokemonStat> stats, String[] moves, long summonedAt, long fullHealthCooldown, int currentHp, int totalHp) {
         this.collectionId = collectionId;
         this.pokedexId = pokedexId;
         this.name = name;
@@ -56,6 +59,9 @@ public class Pokemon {
         this.stats = stats;
         this.moves = moves;
         this.summonedAt = summonedAt;
+        this.fullHealthCooldown = fullHealthCooldown;
+        this.currentHp = currentHp;
+        this.totalHp = totalHp;
     }
 
     public String getCollectionId() { return collectionId; }
@@ -164,6 +170,18 @@ public class Pokemon {
 
     public void setSummonedAt(long summonedAt) { this.summonedAt = summonedAt; }
 
+    public long getFullHealthCooldown() { return fullHealthCooldown; }
+
+    public void setFullHealthCooldown(long fullHealthCooldown) { this.fullHealthCooldown = fullHealthCooldown; }
+
+    public int getCurrentHp() { return currentHp; }
+
+    public void setCurrentHp(int currentHp) { this.currentHp = currentHp; }
+
+    public int getTotalHp() { return totalHp; }
+
+    public void setTotalHp(int totalHp) { this.totalHp = totalHp; }
+
     public PokemonDTO toPokemonDTO() {
         ArrayList<String> types = Arrays.stream(this.types).map(t -> t.name().toLowerCase()).collect(Collectors.toCollection(ArrayList::new));
 
@@ -172,7 +190,7 @@ public class Pokemon {
             stats.put(stat.getKey().name(), stat.getValue().getBattleStat());
         }
 
-        PokemonDTO dto = new PokemonDTO(pokedexId, name, rarity, level, exp, weight, height, types, sprite, cry, stats, new ArrayList<>(Arrays.asList(moves)), summonedAt);
+        PokemonDTO dto = new PokemonDTO(pokedexId, name, rarity, level, exp, weight, height, types, sprite, cry, stats, new ArrayList<>(Arrays.asList(moves)), summonedAt, fullHealthCooldown, currentHp, totalHp);
         dto.setCollectionId(getCollectionId());
 
         return dto;

@@ -24,7 +24,6 @@ public class BattlePokemon extends Pokemon {
     boolean lockedIn;
     boolean charging;
     int turns;
-
     private BattlePokemonListener battlePokemonListener;
     private DamageEffectListener damageEffectListener;
     private MoveUseListener moveUseListener;
@@ -43,7 +42,10 @@ public class BattlePokemon extends Pokemon {
                 pokemon.getHeight(),
                 pokemon.getStats(),
                 pokemon.getMoves(),
-                pokemon.getSummonedAt());
+                pokemon.getSummonedAt(),
+                pokemon.getFullHealthCooldown(),
+                pokemon.getCurrentHp(),
+                pokemon.getTotalHp());
 
         totalHp = pokemon.getName().equals(ArenaRegistry.SINGLE_HP_POKEMON) ? 1 : pokemon.getStats().get(StatId.HP).getEffectiveStat(pokemon.getLevel());
         currentHp = totalHp;

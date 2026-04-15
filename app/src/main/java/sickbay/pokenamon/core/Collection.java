@@ -20,10 +20,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.system.home.BackgroundMusicManager;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.db.DB;
-import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.system.home.GridSpacingItemDecoration;
 import sickbay.pokenamon.system.home.PokemonListAdapter;
 import sickbay.pokenamon.util.Localizer;

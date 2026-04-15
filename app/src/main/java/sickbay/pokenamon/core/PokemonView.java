@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -12,16 +13,22 @@ import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.bumptech.glide.Glide;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.db.DB;
+import sickbay.pokenamon.system.home.TimeManager;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.network.PokeAPIManager;
@@ -33,7 +40,7 @@ import sickbay.pokenamon.util.Localizer;
 
 public class PokemonView extends AppCompatActivity {
     private final String STAR = "★";
-    private TextView backButton, sellButton, entry, name, rarity, level, exp, type1, type2, statHp, statAttack, statDefense, statSpAttack, statSpDefense, statSpeed;
+    private TextView backButton, sellButton, entry, name, rarity, level, exp, type1, type2, totalBaseStats, statHp, statAttack, statDefense, statSpAttack, statSpDefense, statSpeed, obtainedAt;
     private ProgressBar levelBar, hpBar, attackBar, defenseBar, spAttackBar, spDefenseBar, speedBar;
     private ImageView sprite;
 
@@ -67,6 +74,7 @@ public class PokemonView extends AppCompatActivity {
         type1 = findViewById(R.id.pokemon_view_type1);
         type2 = findViewById(R.id.pokemon_view_type2);
         sprite = findViewById(R.id.pokemon_view_sprite);
+        totalBaseStats = findViewById(R.id.totalBaseStats);
         move1 = findViewById(R.id.pokemon_view_move1);
         move2 = findViewById(R.id.pokemon_view_move2);
         move3 = findViewById(R.id.pokemon_view_move3);
@@ -103,6 +111,7 @@ public class PokemonView extends AppCompatActivity {
         selectPokemon = findViewById(R.id.pokemon_view_selectPokemon);
         cryPlayer = new MediaPlayer();
         cryPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        obtainedAt = findViewById(R.id.pokemon_view_summonedAt);
 
         backButton.setOnClickListener(v -> {
             finish();
@@ -112,6 +121,44 @@ public class PokemonView extends AppCompatActivity {
         sellButton.setOnClickListener(v -> {
             UserManager.getInstance().sellPokemon(this, pokemon, () -> { finish(); overridePendingTransition(0, 0);});
         });
+
+        long duration = pokemon.getFullHealthCooldown();
+        long currentTime = TimeManager.getInstance(getApplicationContext()).getCurrentTimeInMs();
+
+        if (duration != 0 && currentTime < duration) {
+            selectPokemon.setVisibility(LinearLayout.GONE);
+            selectPokemon.setEnabled(false);
+
+            new CountDownTimer(duration - currentTime, 1000) {
+                @Override
+                public void onFinish() {
+                    DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(pokemon.getCollectionId()).child("fullHealthCooldown").setValue(0);
+                    UserManager.getInstance().getUser().getLastBattledPokemon().setFullHealthCooldown(0);
+
+                    ((TextView) selectPokemon.getChildAt(0)).setText("Battle with " + Localizer.formatPokemonName(pokemon.getName()) + "!");
+                    selectPokemon.setEnabled(true);
+                }
+
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    selectPokemon.setVisibility(LinearLayout.VISIBLE);
+
+                    long seconds = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished);
+                    long minutes = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished);
+                    long hours = TimeUnit.MILLISECONDS.toHours(millisUntilFinished);
+                    long days = TimeUnit.MILLISECONDS.toDays(millisUntilFinished);
+
+                    String btnTimeLabel = days > 0 ? String.format("%02dd %02dh %02dm %02ds", days, hours, minutes, seconds) : String.format("%02dh %02dm %02ds", hours, minutes, seconds);
+
+                    ((TextView) selectPokemon.getChildAt(0)).setText(btnTimeLabel);
+                }
+            }.start();
+        } else {
+            selectPokemon.setVisibility(LinearLayout.VISIBLE);
+
+            ((TextView) selectPokemon.getChildAt(0)).setText("Battle with " + Localizer.formatPokemonName(pokemon.getName()) + "!");
+            selectPokemon.setEnabled(true);
+        }
 
         selectPokemon.setOnClickListener(v -> {
             UserManager.getInstance().setSelectedPokemonForBattle(pokemon);
@@ -153,6 +200,7 @@ public class PokemonView extends AppCompatActivity {
         String pokemonLevel = String.format("Lv. %02d", pokemon.getLevel());
         String pokemonType1 = Localizer.toTitleCase(pokemon.getTypes().get(0));
         String pokemonType2 = null;
+        long pokemonSummonedAt = pokemon.getSummonedAt();
 
         try {
             pokemonType2 = Localizer.toTitleCase(pokemon.getTypes().get(1));
@@ -162,7 +210,7 @@ public class PokemonView extends AppCompatActivity {
 
         int pokemonRarity = pokemon.getRarity();
         int pokemonExp = pokemon.getExp();
-        int pokemonRequirementExp = pokemon.getLevel() > 1 ? (int) Math.pow(pokemon.getLevel(), 3) : 9 - pokemonExp;
+        int pokemonRequirementExp = pokemon.getLevel() > 1 ? (int) Math.pow(pokemon.getLevel(), 3) : 9;
 
         entry.setText(pokedexId);
         rarity.setText(STAR.repeat(pokemonRarity));
@@ -181,6 +229,9 @@ public class PokemonView extends AppCompatActivity {
 
         if (pokemonType2 != null) { type2.setText(pokemonType2); PokemonListAdapter.setTypeStrokeColor(type2, pokemonType2); }
 
+        SimpleDateFormat format = new SimpleDateFormat("MMM dd, yyyy");
+
+        obtainedAt.setText(format.format(new Date(pokemonSummonedAt)));
 
         for (BattleMove move: queriedMoves) {
             int i = queriedMoves.indexOf(move);
@@ -202,6 +253,8 @@ public class PokemonView extends AppCompatActivity {
             levelBar.setMax(pokemonRequirementExp);
             levelBar.setProgress(Math.max(pokemonExp, 0), true);
         });
+
+        int totalStats = 0;
 
         for (Map.Entry<String, Integer> stat: pokemon.getStats().entrySet()) {
             StatId statId = StatId.valueOf(Localizer.formatEnumString(stat.getKey()));
@@ -229,10 +282,12 @@ public class PokemonView extends AppCompatActivity {
                 label = statSpeed;
             }
 
+            totalStats+=stat.getValue();
             bar.post(() -> {bar.setMax(255); bar.setProgress(stat.getValue(), true);});
             label.setText(String.valueOf(stat.getValue()));
         }
 
+        totalBaseStats.setText(String.format("(%,d)", totalStats));
         ((TextView) selectPokemon.getChildAt(0)).setText("Battle with " + Localizer.formatPokemonName(pokemonName));
     }
 

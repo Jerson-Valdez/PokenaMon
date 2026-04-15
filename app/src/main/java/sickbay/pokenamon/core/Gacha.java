@@ -197,7 +197,19 @@ public class Gacha extends AppCompatActivity {
         ArrayList<PokemonDTO> summonedPokemon = new ArrayList<>();
 
         for (double luck : chosenRand) {
-            String tier = (luck <= .5) ? "legendary" : (luck <= 8) ? "ultra_rare" : (luck <= 30) ? "rare" : "common";
+            String tier = "common";
+            int multiplier;
+
+            if (luck <= .5) {
+                tier = "legendary"; multiplier = 60;
+            } else if (luck <= 8) {
+                tier = "ultra_rare"; multiplier = 35;
+            } else if (luck <= 30) {
+                tier = "rare"; multiplier = 20;
+            } else {
+                multiplier = 10;
+            }
+
             DB.getDatabaseInstance().getGachaMetadataTierReference(tier).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -234,7 +246,7 @@ public class Gacha extends AppCompatActivity {
                                     Toast.makeText(Gacha.this, "Sorry! An error occurred..", Toast.LENGTH_SHORT).show();
                                     listener.onError(message);
                                 }
-                            });
+                            }, multiplier);
                             break;
                         }
                         currentPos++;

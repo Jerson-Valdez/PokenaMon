@@ -31,6 +31,10 @@ public class PokemonDTO implements Parcelable {
     private HashMap<String, Integer> stats;
     private ArrayList<String> moves;
     private long summonedAt;
+    private long fullHealthCooldown;
+    private int currentHp;
+    private int totalHp;
+
     @Exclude
     public int getStability(){return 0;}
 
@@ -57,6 +61,9 @@ public class PokemonDTO implements Parcelable {
         }
         moves = in.createStringArrayList();
         summonedAt = in.readLong();
+        fullHealthCooldown = in.readLong();
+        currentHp = in.readInt();
+        totalHp = in.readInt();
     }
 
     public PokemonDTO(int pokedexId, String name, int rarity, int level, int exp, double weight, double height, ArrayList<String> types, PokemonSprite sprite, String cry, HashMap<String, Integer> stats, ArrayList<String> moves) {
@@ -74,7 +81,7 @@ public class PokemonDTO implements Parcelable {
         this.moves = moves;
     }
 
-    public PokemonDTO(int pokedexId, String name, int rarity, int level, int exp, double weight, double height, ArrayList<String> types, PokemonSprite sprite, String cry, HashMap<String, Integer> stats, ArrayList<String> moves, long summonedAt) {
+    public PokemonDTO(int pokedexId, String name, int rarity, int level, int exp, double weight, double height, ArrayList<String> types, PokemonSprite sprite, String cry, HashMap<String, Integer> stats, ArrayList<String> moves, long summonedAt, long fullHealthCooldown, int currentHp, int totalHp) {
         this.pokedexId = pokedexId;
         this.name = name;
         this.rarity = rarity;
@@ -88,6 +95,9 @@ public class PokemonDTO implements Parcelable {
         this.stats = stats;
         this.moves = moves;
         this.summonedAt = summonedAt;
+        this.fullHealthCooldown = fullHealthCooldown;
+        this.currentHp = currentHp;
+        this.totalHp = totalHp;
     }
 
     public String getCollectionId() {
@@ -194,6 +204,18 @@ public class PokemonDTO implements Parcelable {
 
     public void setSummonedAt(long summonedAt) { this.summonedAt = summonedAt; }
 
+    public long getFullHealthCooldown() { return fullHealthCooldown; }
+
+    public void setFullHealthCooldown(long fullHealthCooldown) { this.fullHealthCooldown = fullHealthCooldown; }
+
+    public int getCurrentHp() { return currentHp; }
+
+    public void setCurrentHp(int currentHp) { this.currentHp = currentHp; }
+
+    public int getTotalHp() { return totalHp; }
+
+    public void setTotalHp(int totalHp) { this.totalHp = totalHp; }
+
     public Pokemon toPokemon() {
         Type[] types = this.types
                 .stream().map(t -> Type.valueOf(Localizer.formatEnumString(t)))
@@ -205,7 +227,7 @@ public class PokemonDTO implements Parcelable {
             stats.put(id, new PokemonStat(id, entry.getValue()));
         }
 
-        return new Pokemon(collectionId, pokedexId, name, rarity, level, exp, types, sprite, cry, weight, height, stats, moves.toArray(new String[0]), summonedAt);
+        return new Pokemon(collectionId, pokedexId, name, rarity, level, exp, types, sprite, cry, weight, height, stats, moves.toArray(new String[0]), summonedAt, fullHealthCooldown, currentHp, totalHp);
     }
 
     @Override
@@ -228,6 +250,9 @@ public class PokemonDTO implements Parcelable {
         }
         dest.writeStringList(moves);
         dest.writeLong(summonedAt);
+        dest.writeLong(fullHealthCooldown);
+        dest.writeInt(currentHp);
+        dest.writeInt(totalHp);
     }
 
     @Override

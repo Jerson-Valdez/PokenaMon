@@ -77,7 +77,7 @@ public class PokeAPIManager {
         return instance;
     }
 
-    public void getGachaPokemon(int pokemonId, GetGachaPokemonListener listener) throws RuntimeException {
+    public void getGachaPokemon(int pokemonId, GetGachaPokemonListener listener, int multiplier) throws RuntimeException {
         String query = buildEndpoint(Endpoint.POKEMON, String.valueOf(pokemonId));
 
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, query, null, (response) -> {
@@ -85,7 +85,9 @@ public class PokeAPIManager {
                 int pokedexId = response.getInt("id");
                 String name = response.getString("name");
                 double weight = hectogramToKilogram(response.getInt("weight"));
+                weight += weight * (rand.nextInt(101) > multiplier ? .02 : .05);
                 double height = decimeterToMeter(response.getInt("height"));
+                height += height * (rand.nextInt(101) > multiplier ? .02 : .05);
                 String cry = response.getJSONObject("cries").getString("latest");
 
                 JSONObject sprites = response.getJSONObject("sprites");
@@ -108,12 +110,19 @@ public class PokeAPIManager {
 
                 JSONArray stats = response.getJSONArray("stats");
 
-                statsMap.put(StatId.HP, new PokemonStat(StatId.HP, stats.getJSONObject(0).getInt("base_stat")));
-                statsMap.put(StatId.ATTACK, new PokemonStat(StatId.ATTACK, stats.getJSONObject(1).getInt("base_stat")));
-                statsMap.put(StatId.DEFENSE, new PokemonStat(StatId.DEFENSE, stats.getJSONObject(2).getInt("base_stat")));
-                statsMap.put(StatId.SPECIAL_ATTACK, new PokemonStat(StatId.SPECIAL_ATTACK, stats.getJSONObject(3).getInt("base_stat")));
-                statsMap.put(StatId.SPECIAL_DEFENSE, new PokemonStat(StatId.SPECIAL_DEFENSE, stats.getJSONObject(4).getInt("base_stat")));
-                statsMap.put(StatId.SPEED, new PokemonStat(StatId.SPEED, stats.getJSONObject(5).getInt("base_stat")));
+                int hpStat = stats.getJSONObject(0).getInt("base_stat");
+                int atkStat = stats.getJSONObject(1).getInt("base_stat");
+                int defStat = stats.getJSONObject(2).getInt("base_stat");
+                int spAtkStat = stats.getJSONObject(3).getInt("base_stat");
+                int spDefStat = stats.getJSONObject(4).getInt("base_stat");
+                int spdStat = stats.getJSONObject(5).getInt("base_stat");
+
+                statsMap.put(StatId.HP, new PokemonStat(StatId.HP, (int) (hpStat + (hpStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+                statsMap.put(StatId.ATTACK, new PokemonStat(StatId.ATTACK, (int) (atkStat + (atkStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+                statsMap.put(StatId.DEFENSE, new PokemonStat(StatId.DEFENSE, (int) (defStat + (defStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+                statsMap.put(StatId.SPECIAL_ATTACK, new PokemonStat(StatId.SPECIAL_ATTACK, (int) (spAtkStat + (spAtkStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+                statsMap.put(StatId.SPECIAL_DEFENSE, new PokemonStat(StatId.SPECIAL_DEFENSE, (int) (spDefStat + (spDefStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+                statsMap.put(StatId.SPEED, new PokemonStat(StatId.SPEED, (int) (spdStat + (spdStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
 
                 JSONArray moves = response.getJSONArray("moves");
                 Set<String> chosenMoves = new HashSet<>();
@@ -126,29 +135,29 @@ public class PokeAPIManager {
                     }
 
                     chosenMoves.add(move);
-                };
+                }
 
                 List<String> spriteUrls = new ArrayList<>();
                 spriteUrls.add(buildEndpoint(Endpoint.FRONT, sanitizePokemonNameForShowdown(name)));
                 spriteUrls.add(buildEndpoint(Endpoint.FRONT_FALLBACK, sanitizePokemonNameForShowdown(name)));
                 spriteUrls.add(buildFallbackEndpoint(Endpoint.FRONT_FALLBACK, sanitizePokemonNameForShowdown(name)));
 
+                double finalWeight = weight;
+                double finalHeight = height;
                 getFrontSpriteFallback(spriteUrls, 0, sprite, () -> {
-                    Pokemon pokemon = new Pokemon(pokedexId, name, 1, 0, typeSet, sprite, cry, weight, height, statsMap, chosenMoves.toArray(new String[0]));
+                    Pokemon pokemon = new Pokemon(pokedexId, name, 1, 0, typeSet, sprite, cry, finalWeight, finalHeight, statsMap, chosenMoves.toArray(new String[0]));
                     listener.onComplete(pokemon);
                 });
 
             } catch (JSONException e) {
                 listener.onError(e.getMessage());
             }
-        }, (error) -> {
-            listener.onError(error.getMessage());
-        });
+        }, (error) -> listener.onError(error.getMessage()));
 
         RequestSingleton.getInstance(context).addToRequestQueue(request);
     }
 
-    public void getGachaEnemyPokemon(int playerLevel, GetGachaPokemonListener listener) throws RuntimeException {
+    public void getGachaEnemyPokemon(int playerLevel, GetGachaPokemonListener listener, int multiplier) throws RuntimeException {
         int pokemonId = rand.nextInt(ArenaRegistry.POKEDEX_ENTRY_COUNT) + 1;
         int baseLevel = Math.max(1, playerLevel);
         int variance = rand.nextInt(6) < 3
@@ -163,7 +172,9 @@ public class PokeAPIManager {
                 int pokedexId = response.getInt("id");
                 String name = response.getString("name");
                 double weight = hectogramToKilogram(response.getInt("weight"));
+                weight += weight * (rand.nextInt(101) > multiplier ? .02 : .05);
                 double height = decimeterToMeter(response.getInt("height"));
+                height += height * (rand.nextInt(101) > multiplier ? .02 : .05);
                 String cry = response.getJSONObject("cries").getString("latest");
 
                 JSONObject sprites = response.getJSONObject("sprites");
@@ -186,12 +197,20 @@ public class PokeAPIManager {
 
                 JSONArray stats = response.getJSONArray("stats");
 
-                statsMap.put(StatId.HP, new PokemonStat(StatId.HP, stats.getJSONObject(0).getInt("base_stat")));
-                statsMap.put(StatId.ATTACK, new PokemonStat(StatId.ATTACK, stats.getJSONObject(1).getInt("base_stat")));
-                statsMap.put(StatId.DEFENSE, new PokemonStat(StatId.DEFENSE, stats.getJSONObject(2).getInt("base_stat")));
-                statsMap.put(StatId.SPECIAL_ATTACK, new PokemonStat(StatId.SPECIAL_ATTACK, stats.getJSONObject(3).getInt("base_stat")));
-                statsMap.put(StatId.SPECIAL_DEFENSE, new PokemonStat(StatId.SPECIAL_DEFENSE, stats.getJSONObject(4).getInt("base_stat")));
-                statsMap.put(StatId.SPEED, new PokemonStat(StatId.SPEED, stats.getJSONObject(5).getInt("base_stat")));
+                int hpStat = stats.getJSONObject(0).getInt("base_stat");
+                int atkStat = stats.getJSONObject(1).getInt("base_stat");
+                int defStat = stats.getJSONObject(2).getInt("base_stat");
+                int spAtkStat = stats.getJSONObject(3).getInt("base_stat");
+                int spDefStat = stats.getJSONObject(4).getInt("base_stat");
+                int spdStat = stats.getJSONObject(5).getInt("base_stat");
+
+                statsMap.put(StatId.HP, new PokemonStat(StatId.HP, (int) (hpStat + (hpStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+                statsMap.put(StatId.ATTACK, new PokemonStat(StatId.ATTACK, (int) (atkStat + (atkStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+                statsMap.put(StatId.DEFENSE, new PokemonStat(StatId.DEFENSE, (int) (defStat + (defStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+                statsMap.put(StatId.SPECIAL_ATTACK, new PokemonStat(StatId.SPECIAL_ATTACK, (int) (spAtkStat + (spAtkStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+                statsMap.put(StatId.SPECIAL_DEFENSE, new PokemonStat(StatId.SPECIAL_DEFENSE, (int) (spDefStat + (spDefStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+                statsMap.put(StatId.SPEED, new PokemonStat(StatId.SPEED, (int) (spdStat + (spdStat * (rand.nextInt(101) > multiplier ? -.02 : .04)))));
+
 
                 JSONArray moves = response.getJSONArray("moves");
                 Set<String> chosenMoves = new HashSet<>();
@@ -204,15 +223,17 @@ public class PokeAPIManager {
                     }
 
                     chosenMoves.add(move);
-                };
+                }
 
                 List<String> spriteUrls = new ArrayList<>();
                 spriteUrls.add(buildEndpoint(Endpoint.FRONT, sanitizePokemonNameForShowdown(name)));
                 spriteUrls.add(buildEndpoint(Endpoint.FRONT_FALLBACK, sanitizePokemonNameForShowdown(name)));
                 spriteUrls.add(buildFallbackEndpoint(Endpoint.FRONT_FALLBACK, sanitizePokemonNameForShowdown(name)));
 
+                double finalWeight = weight;
+                double finalHeight = height;
                 getFrontSpriteFallback(spriteUrls, 0, sprite, () -> {
-                    Pokemon pokemon = new Pokemon(pokedexId, name, level, 0, typeSet, sprite, cry, weight, height, statsMap, chosenMoves.toArray(new String[0]));
+                    Pokemon pokemon = new Pokemon(pokedexId, name, level, 0, typeSet, sprite, cry, finalWeight, finalHeight, statsMap, chosenMoves.toArray(new String[0]));
                     listener.onComplete(pokemon);
                 });
 
@@ -220,9 +241,7 @@ public class PokeAPIManager {
             } catch (JSONException e) {
                 listener.onError(e.getMessage());
             }
-        }, (error) -> {
-            listener.onError(error.getMessage());
-        });
+        }, (error) -> listener.onError(error.getMessage()));
 
         RequestSingleton.getInstance(context).addToRequestQueue(request);
     }

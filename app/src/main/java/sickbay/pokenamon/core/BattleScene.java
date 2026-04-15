@@ -18,16 +18,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,9 +28,8 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import sickbay.pokenamon.R;
-import sickbay.pokenamon.db.DB;
+import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.Pokemon;
-import sickbay.pokenamon.model.User;
 import sickbay.pokenamon.model.VolatileAilment;
 import sickbay.pokenamon.network.PokeAPIManager;
 import sickbay.pokenamon.system.arena.ArenaEngine;
@@ -55,6 +47,7 @@ import sickbay.pokenamon.system.home.BackgroundMusicManager;
 import sickbay.pokenamon.system.gacha.GetBattlePokemonListener;
 import sickbay.pokenamon.system.gacha.GetGachaPokemonListener;
 import sickbay.pokenamon.system.home.PokemonListAdapter;
+import sickbay.pokenamon.system.home.TimeManager;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.util.Localizer;
 
@@ -210,6 +203,10 @@ public class BattleScene extends AppCompatActivity {
     }
 
     private void generateEnemyPokemon(Runnable listener) {
+        int random = (int) (0.1 + (101 - 0.1) * rand.nextDouble());
+        int multiplier = random <= .5 ? 60 : random <= 8 ? 35: random <= 30 ? 20 : 10;
+
+
         PokeAPIManager.getInstance(getApplicationContext()).getGachaEnemyPokemon(playerPokemon.getLevel(), new GetGachaPokemonListener() {
             @Override
             public void onComplete(Pokemon pokemon) {
@@ -234,7 +231,7 @@ public class BattleScene extends AppCompatActivity {
             public void onError(String message) {
                 Log.e("BattleSceneEnemyPopulate", message);
             }
-        });
+        }, multiplier);
     }
 
     private void bindPlayerMovesToButtons(Map<LinearLayout, List<TextView>> moveMap) {
@@ -373,7 +370,7 @@ public class BattleScene extends AppCompatActivity {
                 Date lastLogin = format.parse(UserManager.getInstance().getUser().getLastLogin());
                 Date today = format.parse(format.format(new Date()));
 
-                if (TimeUnit.DAYS.convert(today.getTime() - lastLogin.getTime(), TimeUnit.MILLISECONDS) == 1) {
+                if (lastLogin == null || TimeUnit.DAYS.convert(today.getTime() - lastLogin.getTime(), TimeUnit.MILLISECONDS) == 1) {
                     UserManager.getInstance().updateStreak(1, format.format(today));
                 } else {
                     UserManager.getInstance().updateStreak(-(UserManager.getInstance().getUser().getStreak() - 1), format.format(today));
@@ -383,25 +380,35 @@ public class BattleScene extends AppCompatActivity {
             }
         }
 
+
         if (pokemon.getCollectionId() != null) {
             BackgroundMusicManager.getInstance(BattleScene.this.peekAvailableContext()).play(R.raw.lose);
+
+            long startTime = TimeManager.getInstance(getApplicationContext()).getCurrentTimeInMs();
+            long fullHealthCooldown = ArenaEngine.generateRestoreCooldown(startTime, pokemon);
+
+            playerPokemon.setFullHealthCooldown(fullHealthCooldown);
+            playerPokemon.setCurrentHp(0);
+
             new AlertDialog.Builder(BattleScene.this)
                     .setTitle("You Have Been Defeated")
                     .setMessage(String.format("You've reached Floor %,02d before you and your Pokemon fell into defeat.. You have earned %,d shards in total.", floor, totalShardsEarned))
                     .setNegativeButton("Return Home", (dialog, which) -> {
-                        UserManager.getInstance().updateUserLastBattledPokemon(playerPokemon.toPokemonDTO());
-                        finish();
-                        overridePendingTransition(0,0);
+                        UserManager.getInstance().updateBattlePokemon(playerPokemon.toPokemonDTO(), () -> {
+                            finish();
+                            overridePendingTransition(0,0);
+                        });
                     })
                     .setCancelable(false)
                     .show();
         } else {
             BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.win);
+
             int shardsEarned = UserManager.getInstance().valuatePokemon(pokemon.toPokemonDTO());
             totalShardsEarned += shardsEarned;
             int expGained = ArenaEngine.gainExp(playerPokemon);
             double expRatio =  expGained / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3));
-            int levelsGained = (int) Math.min(1, Math.floor(expRatio));
+            int levelsGained = (int) Math.max(1, Math.floor(expRatio));
 
             playerPokemon.setExp(playerPokemon.getExp() + expGained);
             playerPokemon.setLevel(playerPokemon.getLevel() + levelsGained);
@@ -410,24 +417,27 @@ public class BattleScene extends AppCompatActivity {
             UserManager.getInstance().updateUserEarnedShardsByBattling(shardsEarned);
             UserManager.getInstance().updateHighestFloorWin(floor);
 
-            UserManager.getInstance().updateBattlePokemon(playerPokemon.toPokemonDTO());
-
             new AlertDialog.Builder(BattleScene.this)
                     .setTitle(String.format("Onwards to Floor %,02d!", floor + 1))
-                    .setMessage(String.format(" Your battle in this current floor earned you %,d shards! Your Pokemon also gained %,d EXP!" + (levelsGained > 0 ? "Your Pokemon leveled up to level %,02d!" : ""), shardsEarned, expGained, playerPokemon.getLevel()))
+                    .setMessage(String.format(" Your battle in this current floor earned you %,d shards! Your Pokemon also gained %,d EXP!" + (levelsGained > 0 ? " Your Pokemon leveled up to level %,02d!" : ""), shardsEarned, expGained, playerPokemon.getLevel()))
                     .setNegativeButton("Return Home", (dialog, which) -> {
-                        UserManager.getInstance().updateUserLastBattledPokemon(playerPokemon.toPokemonDTO());
-                        finish();
-                        overridePendingTransition(0,0);
+                        UserManager.getInstance().updateBattlePokemon(playerPokemon.toPokemonDTO(), () -> {
+                            dialog.dismiss();
+                            finish();
+                            overridePendingTransition(0,0);
+                        });
                     })
                     .setPositiveButton("Continue", (dialog, which) -> {
-                        floor += 1;
+                        UserManager.getInstance().updateBattlePokemon(playerPokemon.toPokemonDTO(), () -> {
+                            floor += 1;
 
-                        setState(BattleState.IDLE);
-                        generateEnemyPokemon(() -> {
-                            loadPlayerPokemon();
-                            refreshHp(this::battle);
-                            BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.battle_theme);
+                            setState(BattleState.IDLE);
+                            generateEnemyPokemon(() -> {
+                                loadPlayerPokemon();
+                                refreshHp(this::battle);
+                                BackgroundMusicManager.getInstance(BattleScene.this).play(R.raw.battle_theme);
+                            });
+                            dialog.dismiss();
                         });
                     })
                     .setCancelable(false)

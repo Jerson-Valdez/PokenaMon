@@ -24,13 +24,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
-import java.util.TimeZone;
 
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.auth.Login;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
-import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.model.User;
 import sickbay.pokenamon.system.home.BackgroundMusicManager;

@@ -1,6 +1,7 @@
 package sickbay.pokenamon.system.home;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -10,7 +11,6 @@ import com.google.android.gms.tasks.Task;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.User;
-import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.util.Localizer;
 
 public class UserManager {
@@ -25,6 +25,7 @@ public class UserManager {
         if (instance == null) {
             instance = new UserManager();
         }
+
         return instance;
     }
 
@@ -86,7 +87,6 @@ public class UserManager {
     }
 
     public void updateUserLastBattledPokemon(PokemonDTO pokemon) {
-        setSelectedPokemonForBattle(pokemon);
         currentUser.setLastBattledPokemon(pokemon);
         DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("lastBattledPokemon").setValue(pokemon);
     }
@@ -121,12 +121,13 @@ public class UserManager {
         return (int) Math.max(Math.floor(pokemon.getRarity() * 1.5 + pokemon.getTypes().size() * 1.5 + pokemon.getLevel() * .3 + pokemon.getStats().values().stream().mapToInt(Integer::valueOf).sum() * .085 - pokemon.getExp() * .30 / 500), 20);
     }
 
-    public void updateBattlePokemon(PokemonDTO oldPokemon) {
+    public void updateBattlePokemon(PokemonDTO oldPokemon, Runnable callback) {
         DB.getDatabaseInstance().getUserInventoryReference(currentUser.getUid()).child(oldPokemon.getCollectionId()).setValue(oldPokemon).addOnCompleteListener(
                 (task) -> {
                     if (task.isSuccessful()) {
+                        UserManager.selectedPokemonForBattle = oldPokemon;
                         updateUserLastBattledPokemon(oldPokemon);
-                        selectedPokemonForBattle = oldPokemon;
+                        callback.run();
                     }
                 }
         );

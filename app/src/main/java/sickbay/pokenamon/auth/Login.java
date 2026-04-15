@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import sickbay.pokenamon.R;
+import sickbay.pokenamon.system.home.TimeManager;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.core.Home;
 import sickbay.pokenamon.db.DB;
@@ -49,6 +50,7 @@ public class Login extends AppCompatActivity {
 
         ProcessLifecycleOwner.get().getLifecycle().addObserver(BackgroundMusicManager.getInstance(getApplicationContext()));
         BackgroundMusicManager.getInstance(this).pause();
+        TimeManager.getInstance(getApplicationContext());
 
         auth = FirebaseAuth.getInstance();
         prefs = new SecurePreferences(this, "credentials", true);

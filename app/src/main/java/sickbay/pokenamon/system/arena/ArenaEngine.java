@@ -4,9 +4,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.google.firebase.database.ServerValue;
+
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import sickbay.pokenamon.model.enums.Ailment;
@@ -27,6 +32,10 @@ public class ArenaEngine {
 
     public static int gainExp(BattlePokemon player) {
         return (int) ((double) ((25 * player.getLevel() / 7) * 1 * 1) / 1 * 1.5 * 1);
+    }
+
+    public static long generateRestoreCooldown(long currentTimeMs, BattlePokemon pokemon) {
+        return currentTimeMs + pokemon.getLevel() * 35000 + (pokemon.getTotalHp() - pokemon.getCurrentHp() * 999);
     }
 
     public static void prepareTurn(AttackAction playerAction, AttackAction enemyAction) {

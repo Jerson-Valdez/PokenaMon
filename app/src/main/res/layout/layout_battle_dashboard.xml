@@ -368,7 +368,7 @@
                 android:layout_weight="1"
                 android:orientation="horizontal"
                 android:gravity="center"
-                android:padding="12sp"
+                android:paddingVertical="12dp"
                 android:background="@drawable/rect"
                 >
 
@@ -413,6 +413,7 @@
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:padding="12sp"
+                android:paddingHorizontal="8dp"
                 android:background="@drawable/rect"
                 android:visibility="gone"
                 >
