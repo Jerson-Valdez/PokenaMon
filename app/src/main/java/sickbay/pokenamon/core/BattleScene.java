@@ -53,6 +53,8 @@ import sickbay.pokenamon.util.Localizer;
 
 public class BattleScene extends AppCompatActivity {
     private static final Random rand = new Random();
+
+    private LinearLayout quitButton;
     private ImageView playerSprite, enemySprite;
     private ProgressBar playerHpBar, enemyHpBar;
     private TextView playerHp;
@@ -86,6 +88,7 @@ public class BattleScene extends AppCompatActivity {
     }
 
     private void init() {
+        quitButton = findViewById(R.id.quitButton);
         playerSprite = findViewById(R.id.playerPokemonSprite);
         enemySprite = findViewById(R.id.enemyPokemonSprite);
         playerHpBar = findViewById(R.id.playerPokemonHpBar);
@@ -123,6 +126,10 @@ public class BattleScene extends AppCompatActivity {
 
         battleLog = findViewById(R.id.battleLog);
         movePanel = findViewById(R.id.movePanel);
+
+        quitButton.setOnClickListener(v -> {
+            conclude(playerPokemon);
+        });
 
         battleLogger = new BattleLogger(battleLog) {
             @Override
@@ -181,6 +188,8 @@ public class BattleScene extends AppCompatActivity {
 
         spriteScale(enemySprite, enemyPokemon.getHeight());
 
+        Log.i("ENEMY", enemyPokemon.getCurrentHp() + " / " + enemyPokemon.getTotalHp());
+
         enemyHpBar.setMax(enemyPokemon.getTotalHp());
         enemyHpBar.setProgress(enemyPokemon.getCurrentHp());
         enemyName.setText(Localizer.formatPokemonName(enemyPokemon.getName()));
@@ -206,11 +215,18 @@ public class BattleScene extends AppCompatActivity {
         int random = (int) (0.1 + (101 - 0.1) * rand.nextDouble());
         int multiplier = random <= .5 ? 60 : random <= 8 ? 35: random <= 30 ? 20 : 10;
 
-
         PokeAPIManager.getInstance(getApplicationContext()).getGachaEnemyPokemon(playerPokemon.getLevel(), new GetGachaPokemonListener() {
             @Override
             public void onComplete(Pokemon pokemon) {
                 BattlePokemon enemy = new BattlePokemon(pokemon);
+
+                Log.i("ENEMY", enemy.getCurrentHp() + " / " + enemy.getTotalHp());
+
+                enemy.setTotalHp(enemy.getTotalHp());
+                enemy.setCurrentHp(enemy.getTotalHp());
+
+                Log.i("ENEMY", enemy.getCurrentHp() + " / " + enemy.getTotalHp());
+
 
                 PokeAPIManager.getInstance(getApplicationContext()).getPokemonDetails(enemy, new GetBattlePokemonListener() {
                     @Override
@@ -388,7 +404,6 @@ public class BattleScene extends AppCompatActivity {
             long fullHealthCooldown = ArenaEngine.generateRestoreCooldown(startTime, pokemon);
 
             playerPokemon.setFullHealthCooldown(fullHealthCooldown);
-            playerPokemon.setCurrentHp(0);
 
             new AlertDialog.Builder(BattleScene.this)
                     .setTitle("You Have Been Defeated")
@@ -408,7 +423,8 @@ public class BattleScene extends AppCompatActivity {
             totalShardsEarned += shardsEarned;
             int expGained = ArenaEngine.gainExp(playerPokemon);
             double expRatio =  expGained / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3));
-            int levelsGained = (int) Math.max(1, Math.floor(expRatio));
+            int levelsGained = (int) Math.min(1, Math.floor(expRatio));
+
 
             playerPokemon.setExp(playerPokemon.getExp() + expGained);
             playerPokemon.setLevel(playerPokemon.getLevel() + levelsGained);
@@ -417,11 +433,45 @@ public class BattleScene extends AppCompatActivity {
             UserManager.getInstance().updateUserEarnedShardsByBattling(shardsEarned);
             UserManager.getInstance().updateHighestFloorWin(floor);
 
+            boolean levelUp = false;
+            while (true) {
+                int currLevel = playerPokemon.getLevel();
+                double expThreshold = currLevel == 1 ? 9 : Math.pow(currLevel, 3);
+
+                if (playerPokemon.getExp() > expThreshold) {
+                    playerPokemon.setLevel(currLevel + 1);
+
+                    playerPokemon.setExp(playerPokemon.getExp() - (int) expThreshold);
+                    levelUp = true;
+
+                    new AlertDialog.Builder(BattleScene.this)
+                            .setTitle("Level Up!")
+                            .setMessage(String.format("%s has leveled up to %d!", Localizer.formatPokemonName(playerPokemon.getName()), playerPokemon.getLevel()))
+                            .setPositiveButton("Continue", (dialog, which) -> dialog.dismiss())
+                            .setCancelable(true)
+                            .show();
+                } else {
+                    break;
+                }
+            }
+
+            if (levelUp) {
+                playerPokemon.setCurrentHp(playerPokemon.getTotalHp());
+
+                new AlertDialog.Builder(BattleScene.this)
+                        .setTitle("Level Up!")
+                        .setMessage(String.format("%s has restored all its health!", Localizer.formatPokemonName(playerPokemon.getName())))
+                        .setPositiveButton("Continue", (dialog, which) -> dialog.dismiss())
+                        .setCancelable(true)
+                        .show();
+            }
+
             new AlertDialog.Builder(BattleScene.this)
                     .setTitle(String.format("Onwards to Floor %,02d!", floor + 1))
-                    .setMessage(String.format(" Your battle in this current floor earned you %,d shards! Your Pokemon also gained %,d EXP!" + (levelsGained > 0 ? " Your Pokemon leveled up to level %,02d!" : ""), shardsEarned, expGained, playerPokemon.getLevel()))
+                    .setMessage(String.format(" Your battle in this current floor earned you %,d shards!", shardsEarned))
                     .setNegativeButton("Return Home", (dialog, which) -> {
                         UserManager.getInstance().updateBattlePokemon(playerPokemon.toPokemonDTO(), () -> {
+                            Log.i("UPDATE_HEALTH", playerPokemon.getCurrentHp() + " / " + playerPokemon.getTotalHp());
                             dialog.dismiss();
                             finish();
                             overridePendingTransition(0,0);

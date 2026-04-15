@@ -29,19 +29,19 @@ public class UserManager {
         return instance;
     }
 
-    public User getUser() { return currentUser; }
+    public User getUser() { return UserManager.currentUser; }
 
     public void setUser(User user) { UserManager.currentUser = user; }
 
     public PokemonDTO getSelectedPokemonForBattle() {
-        return selectedPokemonForBattle;
+        return UserManager.selectedPokemonForBattle;
     }
 
     public void setSelectedPokemonForBattle(PokemonDTO selectedPokemonForBattle) {
         UserManager.selectedPokemonForBattle = selectedPokemonForBattle;
     }
 
-    public boolean isHasBattledToday() { return hasBattledToday; }
+    public boolean isHasBattledToday() { return UserManager.hasBattledToday; }
 
     public void setHasBattledToday(boolean hasBattledToday) { UserManager.hasBattledToday = hasBattledToday; }
 

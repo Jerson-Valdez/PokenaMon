@@ -270,7 +270,7 @@ public class PokeAPIManager {
 
                 @Override
                 public void onError(String message) {
-                    Log.e("MoveHydration", message);
+                    Log.e("MoveHydration", message + "");
                     movesLoaded[0]++;
                     if (movesLoaded[0] == originalMoves.length) {
                         startSpriteLoading(pokemon, listener, enemy);
@@ -480,6 +480,9 @@ public class PokeAPIManager {
         }
         if (pokemonName.contains("blue-meteor") || pokemonName.contains("yellow-meteor") || pokemonName.contains("indigo-meteor") || pokemonName.contains("orange-meteor") || pokemonName.contains("violet-meteor") || pokemonName.contains("green-meteor")) {
             pokemonName = pokemonName.replace("-meteor", "");
+        }
+        if (pokemonName.contains("flutter")) {
+            pokemonName = pokemonName.replace("-", "");
         }
 
         return pokemonName;

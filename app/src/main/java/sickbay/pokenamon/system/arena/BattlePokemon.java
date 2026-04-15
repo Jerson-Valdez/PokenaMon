@@ -13,8 +13,6 @@ import sickbay.pokenamon.model.Ailment;
 import sickbay.pokenamon.model.StatBuff;
 import sickbay.pokenamon.model.VolatileAilment;
 public class BattlePokemon extends Pokemon {
-    int totalHp;
-    int currentHp;
     BattleMove[] battleMoves;
     Ailment ailment;
     HashSet<VolatileAilment> volatileAilments;
@@ -46,9 +44,13 @@ public class BattlePokemon extends Pokemon {
                 pokemon.getFullHealthCooldown(),
                 pokemon.getCurrentHp(),
                 pokemon.getTotalHp());
+        if (pokemon.getTotalHp() == 0) {
+            setTotalHp(getTotalHp());
+        }
+        if (pokemon.getCurrentHp() == 0) {
+            setCurrentHp(getTotalHp());
+        }
 
-        totalHp = pokemon.getName().equals(ArenaRegistry.SINGLE_HP_POKEMON) ? 1 : pokemon.getStats().get(StatId.HP).getEffectiveStat(pokemon.getLevel());
-        currentHp = totalHp;
         battleMoves = Arrays.stream(pokemon.getMoves()).map(BattleMove::new).toArray(BattleMove[]::new);
         buffs = new HashSet<>();
         buffs.add(new StatBuff(StatId.ACCURACY, 0, 0));
@@ -57,10 +59,6 @@ public class BattlePokemon extends Pokemon {
         volatileAilments = new HashSet<>();
     }
 
-    public int getTotalHp() { return totalHp; }
-    public void setTotalHp(int totalHp) { this.totalHp = totalHp; }
-    public int getCurrentHp() { return currentHp; }
-    public void setCurrentHp(int currentHp) { this.currentHp = currentHp; }
     public BattleMove[] getBattleMoves() { return battleMoves; }
     public void setBattleMoves(BattleMove[] battleMoves) { this.battleMoves = battleMoves; }
 
@@ -91,7 +89,7 @@ public class BattlePokemon extends Pokemon {
 
     public void setLastMoveUsed(BattleMove lastMoveUsed) { this.lastMoveUsed = lastMoveUsed; }
 
-    public boolean isFainted() { return currentHp <= 0; }
+    public boolean isFainted() { return getCurrentHp() <= 0; }
 
     public int getEffectiveStat(StatId id) {
         int base = getStats().get(id).getBattleStat();

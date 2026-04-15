@@ -18,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.db.DB;
+import sickbay.pokenamon.db.dto.PokemonDTO;
+import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.system.home.BackgroundMusicManager;
 import sickbay.pokenamon.system.home.TimeManager;
 import sickbay.pokenamon.system.home.UserManager;
@@ -45,7 +47,7 @@ public class Battle extends AppCompatActivity {
     protected void onRestart() {
         super.onRestart();
 
-        Log.i("HEALTH", "" + UserManager.getInstance().getSelectedPokemonForBattle().getCurrentHp());
+        Log.i("BATTLE_HEALTH", UserManager.getInstance().getSelectedPokemonForBattle().getCurrentHp() + " / " + UserManager.getInstance().getSelectedPokemonForBattle().getTotalHp());
 
         BackgroundMusicManager.getInstance(this).play(R.raw.home_theme);
 
@@ -97,32 +99,35 @@ public class Battle extends AppCompatActivity {
     }
 
     private void hydrateSelectedPokemon() {
-        if (UserManager.getInstance().getSelectedPokemonForBattle() != null) {
-            int totalHp = UserManager.getInstance().getSelectedPokemonForBattle().getTotalHp();
-            int currentHp = UserManager.getInstance().getSelectedPokemonForBattle().getCurrentHp();
+        PokemonDTO pokemon = UserManager.getInstance().getSelectedPokemonForBattle();
+
+        if (pokemon != null) {
+            if (pokemon.getCurrentHp() == 0 && pokemon.getFullHealthCooldown() == 0) {
+                pokemon.setCurrentHp(pokemon.getTotalHp());
+            }
 
             noSelectedPokemonDisplay.setVisibility(LinearLayout.GONE);
             selectedPokemonDisplay.setVisibility(LinearLayout.VISIBLE);
 
-            playerName.setText(Localizer.formatPokemonName(UserManager.getInstance().getSelectedPokemonForBattle().getName()));
-            playerLevel.setText(String.format("Lv. %02d", UserManager.getInstance().getSelectedPokemonForBattle().getLevel()));
+            playerName.setText(Localizer.formatPokemonName(pokemon.getName()));
+            playerLevel.setText(String.format("Lv. %02d", pokemon.getLevel()));
 
-            playerHpBar.setMax(totalHp);
-            playerHpBar.setProgress(currentHp);
+            playerHpBar.setMax(pokemon.getTotalHp());
+            playerHpBar.setProgress(pokemon.getCurrentHp());
 
-            playerHp.setText(String.format("%,d / %,d", currentHp, totalHp));
+            playerHp.setText(String.format("%,d / %,d", pokemon.getCurrentHp(), pokemon.getTotalHp()));
 
-            playerExpBar.setMax((UserManager.getInstance().getSelectedPokemonForBattle().getLevel() > 1 ?  (int) Math.pow(UserManager.getInstance().getSelectedPokemonForBattle().getLevel(), 3) : 9));
-            playerExpBar.setProgress(UserManager.getInstance().getSelectedPokemonForBattle().getExp());
+            playerExpBar.setMax((pokemon.getLevel() > 1 ?  (int) Math.pow(pokemon.getLevel(), 3) : 9));
+            playerExpBar.setProgress(pokemon.getExp());
 
             Glide.with(this)
-                    .load(UserManager.getInstance().getSelectedPokemonForBattle().getSprite().getFront())
-                    .error(UserManager.getInstance().getSelectedPokemonForBattle().getSprite().getFrontFallback())
+                    .load(pokemon.getSprite().getFront())
+                    .error(pokemon.getSprite().getFrontFallback())
                     .into(playerSprite);
 
             battleButtons.setVisibility(LinearLayout.VISIBLE);
 
-            long duration = UserManager.getInstance().getSelectedPokemonForBattle().getFullHealthCooldown();
+            long duration = pokemon.getFullHealthCooldown();
             long currentTime = TimeManager.getInstance(getApplicationContext()).getCurrentTimeInMs();
 
             if (duration != 0 && currentTime < duration) {
@@ -132,20 +137,31 @@ public class Battle extends AppCompatActivity {
                 new CountDownTimer(duration - currentTime, 1000) {
                     @Override
                     public void onFinish() {
-                        DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(UserManager.getInstance().getSelectedPokemonForBattle().getCollectionId()).child("fullHealthCooldown").setValue(0);
-                        UserManager.getInstance().getUser().getLastBattledPokemon().setFullHealthCooldown(0);
+                        DB.getDatabaseInstance().getUserInventoryReference(UserManager.getInstance().getUser().getUid()).child(pokemon.getCollectionId()).child("fullHealthCooldown").setValue(0);
 
-                        ((TextView) battleButton.getChildAt(0)).setText("Battle!");
-                        battleButton.setEnabled(true);
+                        UserManager.getInstance().updateBattlePokemon(pokemon, () -> {
+                            pokemon.setCurrentHp(pokemon.getTotalHp());
+                            pokemon.setFullHealthCooldown(0);
+
+                            playerHp.setText(String.format("%,d / %,d", pokemon.getCurrentHp(), pokemon.getTotalHp()));
+
+                            pokemon.setCurrentHp(pokemon.getTotalHp());
+                            playerHpBar.setProgress(pokemon.getTotalHp(), true);
+
+                            ((TextView) battleButton.getChildAt(0)).setText("Battle!");
+                            battleButton.setEnabled(true);
+                        });
+
+
                     }
 
                     @Override
                     public void onTick(long millisUntilFinished) {
                         battleButton.setVisibility(LinearLayout.VISIBLE);
-                        long seconds = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished);
-                        long minutes = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished);
-                        long hours = TimeUnit.MILLISECONDS.toHours(millisUntilFinished);
                         long days = TimeUnit.MILLISECONDS.toDays(millisUntilFinished);
+                        long hours = TimeUnit.MILLISECONDS.toHours(millisUntilFinished) % 24;
+                        long minutes = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) % 60;
+                        long seconds = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) % 60;
 
                         String btnTimeLabel = days > 0 ? String.format("%02dd %02dh %02dm %02ds", days, hours, minutes, seconds) : String.format("%02dh %02dm %02ds", hours, minutes, seconds);
 
@@ -153,7 +169,13 @@ public class Battle extends AppCompatActivity {
                     }
                 }.start();
             } else {
-                battleButton.setVisibility(LinearLayout.VISIBLE);
+                pokemon.setCurrentHp(pokemon.getTotalHp());
+                pokemon.setFullHealthCooldown(0);
+
+                playerHp.setText(String.format("%,d / %,d", pokemon.getCurrentHp(), pokemon.getTotalHp()));
+
+                pokemon.setCurrentHp(pokemon.getTotalHp());
+                playerHpBar.setProgress(pokemon.getTotalHp(), true);
 
                 ((TextView) battleButton.getChildAt(0)).setText("Battle!");
                 battleButton.setEnabled(true);

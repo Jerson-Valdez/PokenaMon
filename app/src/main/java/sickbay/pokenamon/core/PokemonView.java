@@ -161,7 +161,11 @@ public class PokemonView extends AppCompatActivity {
         }
 
         selectPokemon.setOnClickListener(v -> {
+            Log.i("VIEW_HEALTH", pokemon.getCurrentHp() + " / " + pokemon.getTotalHp());
             UserManager.getInstance().setSelectedPokemonForBattle(pokemon);
+
+            Log.i("VIEW_HEALTH", pokemon.getCurrentHp() + " / " + pokemon.getTotalHp());
+
             startActivity(new Intent(this, Battle.class));
             finish();
             overridePendingTransition(0,0);
@@ -231,7 +235,7 @@ public class PokemonView extends AppCompatActivity {
 
         SimpleDateFormat format = new SimpleDateFormat("MMM dd, yyyy");
 
-        obtainedAt.setText(format.format(new Date(pokemonSummonedAt)));
+        obtainedAt.setText("Obtained at: " + format.format(new Date(pokemonSummonedAt)));
 
         for (BattleMove move: queriedMoves) {
             int i = queriedMoves.indexOf(move);

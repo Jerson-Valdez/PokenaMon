@@ -178,7 +178,7 @@ public class Pokemon {
 
     public void setCurrentHp(int currentHp) { this.currentHp = currentHp; }
 
-    public int getTotalHp() { return totalHp; }
+    public int getTotalHp() { return (int) Math.floor(2 * stats.get(StatId.HP).getBaseStat() + 5 + (level + stats.get(StatId.HP).getBaseStat()) * .9) * level / 100 + level + 10; }
 
     public void setTotalHp(int totalHp) { this.totalHp = totalHp; }
 
