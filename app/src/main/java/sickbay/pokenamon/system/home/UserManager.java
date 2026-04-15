@@ -17,6 +17,7 @@ public class UserManager {
     private static UserManager instance;
     private static User currentUser;
     private static PokemonDTO selectedPokemonForBattle;
+    private static boolean hasBattledToday;
 
     private UserManager() {}
 
@@ -37,6 +38,19 @@ public class UserManager {
 
     public void setSelectedPokemonForBattle(PokemonDTO selectedPokemonForBattle) {
         UserManager.selectedPokemonForBattle = selectedPokemonForBattle;
+    }
+
+    public boolean isHasBattledToday() { return hasBattledToday; }
+
+    public void setHasBattledToday(boolean hasBattledToday) { UserManager.hasBattledToday = hasBattledToday; }
+
+    public void updateStreak(int amount, String date) {
+        if (!hasBattledToday) {
+            currentUser.setStreak(currentUser.getStreak() + amount);
+            DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("lastLogin").setValue(date);
+            DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("streak").setValue(currentUser.getStreak());
+            setHasBattledToday(true);
+        }
     }
 
     public Task<Void> updateShards(int amount) {

@@ -18,15 +18,26 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.model.Pokemon;
+import sickbay.pokenamon.model.User;
 import sickbay.pokenamon.model.VolatileAilment;
 import sickbay.pokenamon.network.PokeAPIManager;
 import sickbay.pokenamon.system.arena.ArenaEngine;
@@ -356,6 +367,22 @@ public class BattleScene extends AppCompatActivity {
     }
 
     private void conclude(BattlePokemon pokemon) {
+        if (!UserManager.getInstance().isHasBattledToday()) {
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date lastLogin = format.parse(UserManager.getInstance().getUser().getLastLogin());
+                Date today = format.parse(format.format(new Date()));
+
+                if (TimeUnit.DAYS.convert(today.getTime() - lastLogin.getTime(), TimeUnit.MILLISECONDS) == 1) {
+                    UserManager.getInstance().updateStreak(1, format.format(today));
+                } else {
+                    UserManager.getInstance().updateStreak(-(UserManager.getInstance().getUser().getStreak() - 1), format.format(today));
+                }
+            } catch (ParseException e) {
+                Log.e("Streak", e.getMessage());
+            }
+        }
+
         if (pokemon.getCollectionId() != null) {
             BackgroundMusicManager.getInstance(BattleScene.this.peekAvailableContext()).play(R.raw.lose);
             new AlertDialog.Builder(BattleScene.this)
