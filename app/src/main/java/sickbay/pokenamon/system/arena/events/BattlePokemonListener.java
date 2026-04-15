@@ -1,11 +1,10 @@
 package sickbay.pokenamon.system.arena.events;
 
-import sickbay.pokenamon.core.Battle;
 import sickbay.pokenamon.system.arena.BattleMove;
 import sickbay.pokenamon.system.arena.BattlePokemon;
-import sickbay.pokenamon.system.arena.enums.StatId;
-import sickbay.pokenamon.system.arena.model.Ailment;
-import sickbay.pokenamon.system.arena.model.VolatileAilment;
+import sickbay.pokenamon.model.enums.StatId;
+import sickbay.pokenamon.model.Ailment;
+import sickbay.pokenamon.model.VolatileAilment;
 
 public interface BattlePokemonListener {
     void onFaint(BattlePokemon pokemon);
@@ -24,15 +23,26 @@ public interface BattlePokemonListener {
     void onFlinch(BattlePokemon pokemon);
     void onHeal(BattlePokemon pokemon);
     void onDrain(BattlePokemon pokemon);
-    void onDisabled(BattleMove move);
-    void onTorment(BattleMove move);
+    void onDisabled(BattlePokemon pokemon, BattleMove move);
+    void onTorment(BattlePokemon pokemon, BattleMove move);
     void onYawn(BattlePokemon pokemon);
     void onSilence(BattleMove move);
     void onRecoil(BattlePokemon pokemon);
     void onTarShot(BattlePokemon pokemon);
     void onPerishSong(BattlePokemon pokemon, int turns);
+    void onStatChange(BattlePokemon pokemon, StatId statId, int previousStage, int stage);
 
-    void onStatChange(BattlePokemon pokemon, StatId statId, int stage);
+    void onFly(BattlePokemon pokemon);
+
+    void onDig(BattlePokemon pokemon);
+
+    void onDive(BattlePokemon pokemon);
+
+    void onCharge(BattlePokemon pokemon);
+
+    void onCharging(BattlePokemon pokemon);
+
+    void onChargeFinish(BattlePokemon pokemon);
 
     void onInflict(BattlePokemon pokemon, Ailment ailment);
     void onCure(BattlePokemon pokemon, Ailment ailment);
@@ -40,6 +50,10 @@ public interface BattlePokemonListener {
     void onNightmare(BattlePokemon pokemon);
 
     void onIngrain(BattlePokemon pokemon);
+
+    void onProtect(BattlePokemon pokemon, BattleMove move);
+
+    void onProtectFail(BattlePokemon pokemon, BattleMove move);
 
     void onVolatileInflict(BattlePokemon pokemon,VolatileAilment ailment);
     void onVolatileCure(BattlePokemon pokemon, VolatileAilment ailment);

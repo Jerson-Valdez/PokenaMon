@@ -316,6 +316,28 @@
                             android:progress="56"
                             android:layout_marginEnd="50dp"
                             />
+
+                        <LinearLayout
+                            android:id="@+id/switchPokemon"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginTop="40dp"
+                            android:gravity="center"
+                            android:paddingVertical="12sp"
+                            android:paddingHorizontal="8dp"
+                            android:background="@drawable/rect"
+                            >
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Switch Pokemon"
+                                android:textColor="@color/textVariant"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                />
+                        </LinearLayout>
                     </LinearLayout>
 
                     <ImageView

@@ -91,7 +91,7 @@ public class Gacha extends AppCompatActivity {
             if (UserManager.getInstance().getUser().getShards() >= DRAW_10X) {
                 gacha(10, DRAW_10X);
             } else {
-                Toast.makeText(context, "Not enough coins", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Not enough shards", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -101,7 +101,7 @@ public class Gacha extends AppCompatActivity {
             if (UserManager.getInstance().getUser().getShards() >= DRAW_1X) {
                 gacha(1, DRAW_1X);
             } else {
-                Toast.makeText(context, "Not enough coins", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, "Not enough shards", Toast.LENGTH_SHORT).show();
             }
         });
     }

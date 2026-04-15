@@ -3,11 +3,11 @@ package sickbay.pokenamon.system.arena;
 import java.util.ArrayList;
 import java.util.List;
 
-import sickbay.pokenamon.system.arena.enums.Ailment;
-import sickbay.pokenamon.system.arena.enums.DamageClass;
-import sickbay.pokenamon.system.arena.enums.TargetType;
-import sickbay.pokenamon.system.arena.enums.Type;
-import sickbay.pokenamon.system.arena.model.StatBuff;
+import sickbay.pokenamon.model.enums.Ailment;
+import sickbay.pokenamon.model.enums.DamageClass;
+import sickbay.pokenamon.model.enums.TargetType;
+import sickbay.pokenamon.model.enums.Type;
+import sickbay.pokenamon.model.StatBuff;
 
 public class BattleMove {
     private String name;

@@ -3,7 +3,7 @@ package sickbay.pokenamon.system.arena;
 import java.util.HashMap;
 import java.util.Map;
 
-import sickbay.pokenamon.system.arena.enums.Type;
+import sickbay.pokenamon.model.enums.Type;
 
 public class TypeChart {
     private static final Map<Type, Map<Type, Double>> chart = new HashMap<>();

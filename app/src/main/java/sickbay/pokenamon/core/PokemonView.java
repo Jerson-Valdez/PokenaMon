@@ -9,7 +9,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,18 +17,16 @@ import com.bumptech.glide.Glide;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import sickbay.pokenamon.R;
-import sickbay.pokenamon.system.arena.enums.DamageClass;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.network.PokeAPIManager;
 import sickbay.pokenamon.system.arena.BattleMove;
-import sickbay.pokenamon.system.arena.enums.StatId;
+import sickbay.pokenamon.model.enums.StatId;
 import sickbay.pokenamon.system.gacha.GetBattleMoveListener;
 import sickbay.pokenamon.system.home.PokemonListAdapter;
 import sickbay.pokenamon.util.Localizer;
@@ -165,13 +162,13 @@ public class PokemonView extends AppCompatActivity {
 
         int pokemonRarity = pokemon.getRarity();
         int pokemonExp = pokemon.getExp();
-        int pokemonRequirementExp = pokemon.getLevel() > 1 ? (int) Math.pow(pokemon.getLevel(), 3) : 9;
+        int pokemonRequirementExp = pokemon.getLevel() > 1 ? (int) Math.pow(pokemon.getLevel(), 3) : 9 - pokemonExp;
 
         entry.setText(pokedexId);
         rarity.setText(STAR.repeat(pokemonRarity));
         name.setText(pokemonName);
         level.setText(pokemonLevel);
-        exp.setText(Math.max(pokemonExp - pokemonRequirementExp, 0) + " / " + Math.abs(pokemonRequirementExp - pokemonExp));
+        exp.setText(Math.max(0, pokemonExp) + " / " + pokemonRequirementExp);
         type1.setText(pokemonType1);
         PokemonListAdapter.setTypeStrokeColor(type1, pokemonType1);
 
@@ -179,6 +176,8 @@ public class PokemonView extends AppCompatActivity {
                 .load(pokemon.getSprite().getFront())
                 .error(pokemon.getSprite().getFrontFallback())
                 .into(sprite);
+
+        spriteScale(pokemon.getHeight());
 
         if (pokemonType2 != null) { type2.setText(pokemonType2); PokemonListAdapter.setTypeStrokeColor(type2, pokemonType2); }
 
@@ -201,7 +200,7 @@ public class PokemonView extends AppCompatActivity {
 
         levelBar.post(() -> {
             levelBar.setMax(pokemonRequirementExp);
-            levelBar.setProgress(pokemonExp / pokemonRequirementExp * 100, true);
+            levelBar.setProgress(Math.max(pokemonExp, 0), true);
         });
 
         for (Map.Entry<String, Integer> stat: pokemon.getStats().entrySet()) {
@@ -238,14 +237,28 @@ public class PokemonView extends AppCompatActivity {
     }
 
     private void setMoveClassBackgroundColor(TextView view, String moveClass) {
-        String color = "";
-
-        if (moveClass.toLowerCase().equals("physical")) {
+        if (moveClass.equalsIgnoreCase("physical")) {
             view.setBackgroundColor(getResources().getColor(R.color.fire, null));
-        } else if (moveClass.toLowerCase().equals("special")) {
+        } else if (moveClass.equalsIgnoreCase("special")) {
             view.setBackgroundColor(getResources().getColor(R.color.dragon, null));
         } else {
             view.setBackgroundColor(getResources().getColor(R.color.normal, null));
         }
+    }
+
+    private void spriteScale(double speciesHeightInMeters) {
+        int basePadding = 10;
+        int dynamicPadding;
+
+        if (speciesHeightInMeters < 1.0) {
+            dynamicPadding = 100;
+        } else if (speciesHeightInMeters < 3.0) {
+            dynamicPadding = 40;
+        } else {
+            dynamicPadding = basePadding;
+        }
+
+        sprite.setPadding(dynamicPadding, dynamicPadding, dynamicPadding, dynamicPadding);
+        sprite.setScaleType(ImageView.ScaleType.FIT_CENTER);
     }
 }

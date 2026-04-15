@@ -15,6 +15,7 @@ public class User {
     private PokemonDTO lastBattledPokemon;
     private int earnedShardsBySelling;
     private int earnedShardsByBattling;
+    private String lastLogin;
 
     public User(){}
 
@@ -117,4 +118,8 @@ public class User {
     public void setEarnedShardsBySelling(int earnedShardsBySelling) {
         this.earnedShardsBySelling = earnedShardsBySelling;
     }
+
+    public String getLastLogin() { return lastLogin; }
+
+    public void setLastLogin(String lastLogin) { this.lastLogin = lastLogin; }
 }

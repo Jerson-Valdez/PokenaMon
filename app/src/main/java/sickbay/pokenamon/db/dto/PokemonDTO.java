@@ -10,10 +10,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import sickbay.pokenamon.model.Pokemon;
-import sickbay.pokenamon.system.arena.enums.Type;
-import sickbay.pokenamon.system.arena.model.PokemonSprite;
-import sickbay.pokenamon.system.arena.model.PokemonStat;
-import sickbay.pokenamon.system.arena.enums.StatId;
+import sickbay.pokenamon.model.enums.Type;
+import sickbay.pokenamon.model.PokemonSprite;
+import sickbay.pokenamon.model.PokemonStat;
+import sickbay.pokenamon.model.enums.StatId;
 import sickbay.pokenamon.util.Localizer;
 
 public class PokemonDTO implements Parcelable {
@@ -31,7 +31,6 @@ public class PokemonDTO implements Parcelable {
     private HashMap<String, Integer> stats;
     private ArrayList<String> moves;
     private long summonedAt;
-
     @Exclude
     public int getStability(){return 0;}
 
@@ -75,7 +74,7 @@ public class PokemonDTO implements Parcelable {
         this.moves = moves;
     }
 
-    public PokemonDTO( int pokedexId, String name, int rarity, int level, int exp, double weight, double height, ArrayList<String> types, PokemonSprite sprite, String cry, HashMap<String, Integer> stats, ArrayList<String> moves, long summonedAt) {
+    public PokemonDTO(int pokedexId, String name, int rarity, int level, int exp, double weight, double height, ArrayList<String> types, PokemonSprite sprite, String cry, HashMap<String, Integer> stats, ArrayList<String> moves, long summonedAt) {
         this.pokedexId = pokedexId;
         this.name = name;
         this.rarity = rarity;
@@ -206,7 +205,7 @@ public class PokemonDTO implements Parcelable {
             stats.put(id, new PokemonStat(id, entry.getValue()));
         }
 
-        return new Pokemon(collectionId, pokedexId, name, rarity, level, exp, types, sprite, cry, weight, stats, moves.toArray(new String[0]));
+        return new Pokemon(collectionId, pokedexId, name, rarity, level, exp, types, sprite, cry, weight, height, stats, moves.toArray(new String[0]), summonedAt);
     }
 
     @Override

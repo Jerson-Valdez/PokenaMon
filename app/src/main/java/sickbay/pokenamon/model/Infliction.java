@@ -1,4 +1,4 @@
-package sickbay.pokenamon.system.arena.model;
+package sickbay.pokenamon.model;
 
 public class Infliction {
     int minimumTurns;

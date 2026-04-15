@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import sickbay.pokenamon.system.arena.enums.Ailment;
+import sickbay.pokenamon.model.enums.Ailment;
 
 public class ArenaRegistry {
     public static final int POKEDEX_ENTRY_COUNT = 1025;
@@ -19,7 +19,10 @@ public class ArenaRegistry {
             "baton-pass", // useless
             "helping-hand", // useless
             "trick-room", // too much,
-            "destiny-bond" // hassle to implement
+            "destiny-bond", // hassle to implement
+            "substitute",
+            "sketch",
+            "transform"
     ));
 
     public static final Set<String> MOVES_WITH_SPECIAL_AILMENT = new HashSet<>(List.of(
@@ -316,6 +319,12 @@ public class ArenaRegistry {
             "fake-out", "first-impression"
     ));
 
+    // Debuffs stats of user pokemon
+    public static final Set<String> DEBUFFS_USER = new HashSet<>(List.of(
+            "close-combat", "superpower", "overheat", "draco-meteor", "leaf-storm",
+            "psycho-boost", "v-create", "hammer-arm", "ice-hammer", "fleur-cannon",
+            "dragon-ascent", "armor-cannon", "spin-out", "make-it-rain", "clanging-scales", "tera-blast"
+    ));
 
     public static boolean isBlacklisted(BattleMove move) { return BLACKLISTED_MOVES.contains(move.getName()); }
 
@@ -481,5 +490,9 @@ public class ArenaRegistry {
 
     public static boolean powerIncreasesOnLowHp(BattleMove move) {
         return POWER_INCREASES_LOW_HP.contains(move.getName());
+    }
+
+    public static boolean debuffsUser(BattleMove move) {
+        return DEBUFFS_USER.contains(move.getName());
     }
 }

@@ -27,10 +27,7 @@ public class BattleLogger implements BattleLogFinishListener {
     private void handleBattleLog() {
         if (logQueue.isEmpty()) {
             isFinished = true;
-
-            if (isBattleOngoing) {
-                onLogFinish();
-            }
+            onLogFinish();
             return;
         }
 
