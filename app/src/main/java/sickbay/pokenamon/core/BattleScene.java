@@ -293,10 +293,21 @@ public class BattleScene extends AppCompatActivity {
         });
     }
 
-    private void updateHpBarTint(ProgressBar bar, int currentHp, int totalHp) {
-        double percent = (double) totalHp / currentHp * 100;
 
-        int color = percent > 0.5 ? getResources().getColor(R.color.grass, null) : percent > 0.2 ? getResources().getColor(R.color.electric, null) : getResources().getColor(R.color.fighting, null);
+    private void updateHpBarTint(ProgressBar bar, int currentHp, int totalHp) {
+        if (totalHp <= 0) return;
+
+        double ratio = (double) currentHp / totalHp;
+
+        int color;
+        if (ratio > 0.5) {
+            color = getResources().getColor(R.color.grass, null);
+        } else if (ratio > 0.2) {
+            color = getResources().getColor(R.color.electric, null);
+        } else {
+            color = getResources().getColor(R.color.fighting, null);
+        }
+
         bar.setProgressTintList(ColorStateList.valueOf(color));
     }
 
@@ -425,7 +436,6 @@ public class BattleScene extends AppCompatActivity {
             double expRatio =  expGained / (playerPokemon.getLevel() == 1 ? 9 : Math.pow(playerPokemon.getLevel(), 3));
             int levelsGained = (int) Math.min(1, Math.floor(expRatio));
 
-
             playerPokemon.setExp(playerPokemon.getExp() + expGained);
             playerPokemon.setLevel(playerPokemon.getLevel() + levelsGained);
 
@@ -451,19 +461,18 @@ public class BattleScene extends AppCompatActivity {
                             .setCancelable(true)
                             .show();
                 } else {
+                    if (levelUp) {
+                        playerPokemon.setCurrentHp(playerPokemon.getTotalHp());
+
+                        new AlertDialog.Builder(BattleScene.this)
+                                .setTitle("Level Up!")
+                                .setMessage(String.format("%s has restored all its health!", Localizer.formatPokemonName(playerPokemon.getName())))
+                                .setPositiveButton("Continue", (dialog, which) -> dialog.dismiss())
+                                .setCancelable(true)
+                                .show();
+                    }
                     break;
                 }
-            }
-
-            if (levelUp) {
-                playerPokemon.setCurrentHp(playerPokemon.getTotalHp());
-
-                new AlertDialog.Builder(BattleScene.this)
-                        .setTitle("Level Up!")
-                        .setMessage(String.format("%s has restored all its health!", Localizer.formatPokemonName(playerPokemon.getName())))
-                        .setPositiveButton("Continue", (dialog, which) -> dialog.dismiss())
-                        .setCancelable(true)
-                        .show();
             }
 
             new AlertDialog.Builder(BattleScene.this)

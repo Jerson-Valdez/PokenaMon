@@ -1,6 +1,7 @@
 package sickbay.pokenamon.core;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.bumptech.glide.Glide;
 
@@ -26,7 +28,7 @@ import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.util.Localizer;
 
 public class Battle extends AppCompatActivity {
-    LinearLayout noSelectedPokemonDisplay, selectedPokemonDisplay, selectPokemonButton, switchPokemonButton, battleButtons, battleButton, forfeitButton, continueButton;
+    LinearLayout noSelectedPokemonDisplay, selectedPokemonDisplay, selectPokemonButton, switchPokemonButton, battleButton;
     ImageView playerSprite;
     TextView initial, usernameField, dailyStreak, highestFloor, shardsEarned, playerName, playerHp, playerLevel;
     ProgressBar playerExpBar, playerHpBar;
@@ -70,10 +72,7 @@ public class Battle extends AppCompatActivity {
         playerHp = findViewById(R.id.selectedPokemonMaxHp);
         playerHpBar = findViewById(R.id.selectedPokemonMaxHpBar);
         playerExpBar = findViewById(R.id.selectedPokemonExpBar);
-        battleButtons = findViewById(R.id.battleButtons);
         battleButton = findViewById(R.id.battleButton);
-        forfeitButton = findViewById(R.id.forfeitButton);
-        continueButton = findViewById(R.id.continueButton);
 
         battleButton.setOnClickListener(v -> startActivity(new Intent(this, BattleScene.class)));
 
@@ -116,6 +115,7 @@ public class Battle extends AppCompatActivity {
             playerHpBar.setProgress(pokemon.getCurrentHp());
 
             playerHp.setText(String.format("%,d / %,d", pokemon.getCurrentHp(), pokemon.getTotalHp()));
+            updateHpBarTint(playerHpBar, pokemon.getCurrentHp(), pokemon.getTotalHp());
 
             playerExpBar.setMax((pokemon.getLevel() > 1 ?  (int) Math.pow(pokemon.getLevel(), 3) : 9));
             playerExpBar.setProgress(pokemon.getExp());
@@ -125,14 +125,13 @@ public class Battle extends AppCompatActivity {
                     .error(pokemon.getSprite().getFrontFallback())
                     .into(playerSprite);
 
-            battleButtons.setVisibility(LinearLayout.VISIBLE);
-
             long duration = pokemon.getFullHealthCooldown();
             long currentTime = TimeManager.getInstance(getApplicationContext()).getCurrentTimeInMs();
 
             if (duration != 0 && currentTime < duration) {
                 battleButton.setVisibility(LinearLayout.GONE);
                 battleButton.setEnabled(false);
+                battleButton.getBackground().setTint(ResourcesCompat.getColor(getResources(), R.color.secondary, null));
 
                 new CountDownTimer(duration - currentTime, 1000) {
                     @Override
@@ -147,9 +146,11 @@ public class Battle extends AppCompatActivity {
 
                             pokemon.setCurrentHp(pokemon.getTotalHp());
                             playerHpBar.setProgress(pokemon.getTotalHp(), true);
+                            updateHpBarTint(playerHpBar, pokemon.getCurrentHp(), pokemon.getTotalHp());
 
                             ((TextView) battleButton.getChildAt(0)).setText("Battle!");
                             battleButton.setEnabled(true);
+                            battleButton.getBackground().setTint(ResourcesCompat.getColor(getResources(), R.color.primary, null));
                         });
 
 
@@ -176,17 +177,34 @@ public class Battle extends AppCompatActivity {
 
                 pokemon.setCurrentHp(pokemon.getTotalHp());
                 playerHpBar.setProgress(pokemon.getTotalHp(), true);
+                updateHpBarTint(playerHpBar, pokemon.getCurrentHp(), pokemon.getTotalHp());
 
                 ((TextView) battleButton.getChildAt(0)).setText("Battle!");
                 battleButton.setEnabled(true);
+                battleButton.getBackground().setTint(ResourcesCompat.getColor(getResources(), R.color.primary, null));
             }
         } else {
             noSelectedPokemonDisplay.setVisibility(LinearLayout.VISIBLE);
             selectedPokemonDisplay.setVisibility(LinearLayout.GONE);
 
             selectPokemonButton.setOnClickListener(v -> startActivity(new Intent(this, Collection.class)));
-
-            battleButtons.setVisibility(LinearLayout.GONE);
         }
+    }
+
+    private void updateHpBarTint(ProgressBar bar, int currentHp, int totalHp) {
+        if (totalHp <= 0) return;
+
+        double ratio = (double) currentHp / totalHp;
+
+        int color;
+        if (ratio > 0.5) {
+            color = getResources().getColor(R.color.grass, null);
+        } else if (ratio > 0.2) {
+            color = getResources().getColor(R.color.electric, null);
+        } else {
+            color = getResources().getColor(R.color.fighting, null);
+        }
+
+        bar.setProgressTintList(ColorStateList.valueOf(color));
     }
 }

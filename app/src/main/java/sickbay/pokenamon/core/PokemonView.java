@@ -128,6 +128,7 @@ public class PokemonView extends AppCompatActivity {
         if (duration != 0 && currentTime < duration) {
             selectPokemon.setVisibility(LinearLayout.GONE);
             selectPokemon.setEnabled(false);
+            selectPokemon.getBackground().setTint(ResourcesCompat.getColor(getResources(), R.color.secondary, null));
 
             new CountDownTimer(duration - currentTime, 1000) {
                 @Override
@@ -137,6 +138,8 @@ public class PokemonView extends AppCompatActivity {
 
                     ((TextView) selectPokemon.getChildAt(0)).setText("Battle with " + Localizer.formatPokemonName(pokemon.getName()) + "!");
                     selectPokemon.setEnabled(true);
+                    selectPokemon.getBackground().setTint(ResourcesCompat.getColor(getResources(), R.color.primary, null));
+
                 }
 
                 @Override
@@ -158,6 +161,8 @@ public class PokemonView extends AppCompatActivity {
 
             ((TextView) selectPokemon.getChildAt(0)).setText("Battle with " + Localizer.formatPokemonName(pokemon.getName()) + "!");
             selectPokemon.setEnabled(true);
+            selectPokemon.getBackground().setTint(ResourcesCompat.getColor(getResources(), R.color.primary, null));
+
         }
 
         selectPokemon.setOnClickListener(v -> {

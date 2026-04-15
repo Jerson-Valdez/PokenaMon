@@ -99,10 +99,6 @@ public class DB {
         UserManager.getInstance().setUser(null);
     }
 
-    public void createListenerForSingleValueEvent(DatabaseReference dbRef, ValueEventListener listener) {
-        dbRef.addListenerForSingleValueEvent(listener);
-    }
-
     public void deleteUserPokemon(String uid, String collectionId) {
         getUserInventoryReference(uid).child(collectionId).removeValue();
     }
