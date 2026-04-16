@@ -1,12 +1,13 @@
 package sickbay.pokenamon.system.home;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.gms.tasks.Task;
 
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
@@ -91,30 +92,72 @@ public class UserManager {
         DB.getDatabaseInstance().getUserReference(currentUser.getUid()).child("lastBattledPokemon").setValue(pokemon);
     }
 
+    private boolean isPartnerPokemon(PokemonDTO pokemon) {
+        return selectedPokemonForBattle != null && selectedPokemonForBattle.getCollectionId().contentEquals(pokemon.getCollectionId());
+    }
+
     public void sellPokemon(Context context, PokemonDTO pokemon, Runnable listener) {
         int pokemonValue = valuatePokemon(pokemon);
-        new AlertDialog.Builder(context)
+
+        if (isPartnerPokemon(pokemon)) {
+            new AlertDialog.Builder(context)
+                .setTitle("Sell Pokemon")
+                .setMessage(Localizer.formatPokemonName(pokemon.getName()) + " is currently your battle partner! Do you want to continue?")
+                .setCancelable(false)
+                .setPositiveButton("Continue", (dialog, which) -> {
+                    dialog.dismiss();
+
+                    new AlertDialog.Builder(context)
+                        .setTitle("Sell Pokemon")
+                        .setMessage("You are about to sell " + Localizer.formatPokemonName(pokemon.getName()) + " for " + pokemonValue + " shards. Do you want to continue?")
+                        .setCancelable(false)
+                        .setPositiveButton("Continue", (childDialog, childWhich) -> {
+                            updateShards(pokemonValue)
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        DB.getDatabaseInstance().deleteUserPokemon(UserManager.currentUser.getUid(), pokemon.getCollectionId());
+                                        updatePokemonCount(-1);
+                                        updatePokemonSold(1);
+                                        updateUserEarnedShardsBySelling(pokemonValue);
+
+                                        setSelectedPokemonForBattle(null);
+                                        UserManager.getInstance().getUser().setLastBattledPokemon(null);
+                                        DB.getDatabaseInstance().getUserReference(UserManager.currentUser.getUid()).child("lastBattledPokemon").removeValue();
+                                        listener.run();
+                                        childDialog.dismiss();
+                                    }
+                                });
+                        })
+                        .setNegativeButton("Cancel", (childDialog, childWhich) -> childDialog.dismiss())
+                        .show();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    dialog.dismiss();
+
+                }).show();
+        }
+        else {
+            new AlertDialog.Builder(context)
                 .setTitle("Sell Pokemon")
                 .setMessage("You are about to sell " + Localizer.formatPokemonName(pokemon.getName()) + " for " + pokemonValue + " shards. Do you want to continue?")
                 .setCancelable(false)
                 .setPositiveButton("Continue", (dialog, which) -> {
                     updateShards(pokemonValue)
-                            .addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    if (selectedPokemonForBattle != null && pokemon.getCollectionId().equals(selectedPokemonForBattle.getCollectionId())) {
-                                        selectedPokemonForBattle = null;
-                                    }
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                DB.getDatabaseInstance().deleteUserPokemon(UserManager.currentUser.getUid(), pokemon.getCollectionId());
+                                updatePokemonCount(-1);
+                                updatePokemonSold(1);
+                                updateUserEarnedShardsBySelling(pokemonValue);
 
-                                    DB.getDatabaseInstance().deleteUserPokemon(currentUser.getUid(), pokemon.getCollectionId());
-                                    updatePokemonCount(-1);
-                                    updatePokemonSold(1);
-                                    updateUserEarnedShardsBySelling(pokemonValue);
-                                    listener.run();
-                                }
-                            });
-                    dialog.cancel();
+                                listener.run();
+                                dialog.dismiss();
+                            }
+                        });
                 })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.cancel()).show();
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
+        }
     }
 
     public int valuatePokemon(PokemonDTO pokemon) {
@@ -123,13 +166,13 @@ public class UserManager {
 
     public void updateBattlePokemon(PokemonDTO oldPokemon, Runnable callback) {
         DB.getDatabaseInstance().getUserInventoryReference(currentUser.getUid()).child(oldPokemon.getCollectionId()).setValue(oldPokemon).addOnCompleteListener(
-                (task) -> {
-                    if (task.isSuccessful()) {
-                        UserManager.selectedPokemonForBattle = oldPokemon;
-                        updateUserLastBattledPokemon(oldPokemon);
-                        callback.run();
-                    }
+            (task) -> {
+                if (task.isSuccessful()) {
+                    UserManager.getInstance().setSelectedPokemonForBattle(oldPokemon);
+                    updateUserLastBattledPokemon(oldPokemon);
+                    callback.run();
                 }
+            }
         );
     }
 }

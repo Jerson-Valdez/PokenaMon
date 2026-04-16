@@ -22,7 +22,8 @@ public class ArenaRegistry {
             "destiny-bond", // hassle to implement
             "substitute",
             "sketch",
-            "transform"
+            "transform",
+            "sleep-talk"
     ));
 
     public static final Set<String> MOVES_WITH_SPECIAL_AILMENT = new HashSet<>(List.of(
@@ -70,7 +71,7 @@ public class ArenaRegistry {
 
     // Recharge moves
     public static final Set<String> RECHARGE = new HashSet<>(List.of(
-            "hyper-beam", "giga-impact", "frenzy-plant", "blast-burn", "hydro-cannon",
+            "hyper-beam", "solar-beam", "giga-impact", "frenzy-plant", "blast-burn", "hydro-cannon",
             "rock-wrecker", "roar-of-time", "eternabeam", "prismatic-laser"
     ));
 

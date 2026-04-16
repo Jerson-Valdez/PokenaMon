@@ -224,6 +224,20 @@
                     android:textStyle="bold" />
             </RelativeLayout>
         </FrameLayout>
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:id="@+id/playerPokemonExpBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="false"
+            android:scaleY="1.5"
+            android:progressBackgroundTint="@color/textVariant"
+            android:progressTint="@color/textVariant"
+            android:max="100"
+            android:progress="56"
+            android:layout_marginEnd="50dp"
+            />
     </LinearLayout>
 
     <LinearLayout

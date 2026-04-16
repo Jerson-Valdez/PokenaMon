@@ -1,17 +1,10 @@
 package sickbay.pokenamon.system.arena;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-
-import com.google.firebase.database.ServerValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import sickbay.pokenamon.model.enums.Ailment;
@@ -21,7 +14,6 @@ import sickbay.pokenamon.model.enums.TargetType;
 import sickbay.pokenamon.model.enums.Type;
 import sickbay.pokenamon.model.enums.VolatileAilment;
 import sickbay.pokenamon.model.StatBuff;
-import sickbay.pokenamon.system.arena.states.BattleState;
 import sickbay.pokenamon.util.Localizer;
 
 public class ArenaEngine {
@@ -61,19 +53,8 @@ public class ArenaEngine {
     }
 
     public static void applyMove(BattlePokemon user, BattleMove move,
-                                 BattlePokemon target) {
+                                 BattlePokemon[] targets) {
         Log.d("Moving", user.getName() + " is now moving");
-
-        if (ArenaRegistry.isRecharge(move)) {
-            if (user.isCharging() && user.getTurns() > 0) {
-                user.setTurns(user.getTurns() - 1);
-                user.notifyCharging(user);
-                return;
-            } else if (user.isCharging() && user.getTurns() == 0) {
-                user.setCharging(false);
-                user.notifyChargeFinish(user);
-            }
-        }
 
         if (!canMove(user, move)) {
             return;
@@ -88,6 +69,17 @@ public class ArenaEngine {
         user.setLastMoveUsed(move);
 
         Log.d("Moving", user.getName() + " has successfully moved");
+
+        if (ArenaRegistry.isRecharge(move)) {
+            if (user.isCharging() && user.getTurns() > 0) {
+                user.setTurns(user.getTurns() - 1);
+                user.notifyCharging(user);
+                return;
+            } else if (user.isCharging() && user.getTurns() == 0) {
+                user.setCharging(false);
+                user.notifyChargeFinish(user);
+            }
+        }
 
         if (user.hasVolatileElement(VolatileAilment.TORMENT) && user.getLastMoveUsed() != null && user.getLastMoveUsed().getName().equals(move.getName())) {
             user.notifyTorment(user, move);
@@ -172,97 +164,97 @@ public class ArenaEngine {
             return;
         }
 
+        for (BattlePokemon target: targets) {
 
-        if (target.getAilment().getType() == Ailment.SLEEP) {
-            if (move.getName().equalsIgnoreCase("uproar")) {
-                target.setAilment(new sickbay.pokenamon.model.Ailment(Ailment.NONE, 0, 0,0));
-                target.notifyWakeUp(target);
-            }
-        }
-
-        if (user.hasVolatileElement(VolatileAilment.CONFUSION)) {
-            sickbay.pokenamon.model.VolatileAilment confusion =
-                    user.getVolatileAilment(VolatileAilment.CONFUSION);
-            confusion.setTurns(confusion.getTurns() - 1);
-
-            if (confusion.getTurns() <= 0) {
-                user.removeVolatileAilment(VolatileAilment.CONFUSION);
-                user.notifyConfusionSnap(user);
-            } else if (rand.nextBoolean()) {
-                BattleMove confusionHit = new BattleMove("confusion-hit", DamageClass.PHYSICAL,
-                        Type.NORMAL, TargetType.USER, 40, 0);
-                user.takeDamage(computeDamage(user, confusionHit, user));
-                user.notifyConfusion(user);
-                return;
-            }
-        }
-
-        if (user.hasVolatileElement(VolatileAilment.FLINCH)) {
-            user.removeVolatileAilment(VolatileAilment.FLINCH);
-            user.notifyFlinch(user);
-            return;
-        }
-
-        if (move.getAccuracy() > 0 && !ArenaRegistry.alwaysHits(move) && canHit(user, move, target)) {
-            if (move.getName().equals("high-jump-kick") || move.getName().equals("jump-kick")) {
-                int recoil = (int) Math.floor(user.getTotalHp() / 2.0);
-                user.takeDamage(recoil);
-                user.notifyRecoil(user);
-            }
-            user.notifyMoveMiss(move);
-            return;
-        }
-
-        if (ArenaRegistry.isMoveWithSpecialAilment(move)) {
-            inflictAilment(null, move.getName(), 0, target, false);
-
-            if (move.getName().equals("tar-shot")) {
-                if (rand.nextBoolean()) {
-                    applyPrimaryBuffs(move, user, target);
+            if (target.getAilment().getType() == Ailment.SLEEP) {
+                if (move.getName().equalsIgnoreCase("uproar")) {
+                    target.setAilment(new sickbay.pokenamon.model.Ailment(Ailment.NONE, 0, 0,0));
+                    target.notifyWakeUp(target);
                 }
             }
-        }
 
-        if (target.getLastMoveUsed() != null) {
-            if (!ArenaRegistry.bypassesProtect(move) && ArenaRegistry.isProtect(target.getLastMoveUsed())) {
-                user.notifyProtect(target, move);
-                return;
-            } else if (ArenaRegistry.bypassesProtect(move)) {
-                user.notifyProtectFail(target, move);
+            if (user.hasVolatileElement(VolatileAilment.CONFUSION)) {
+                sickbay.pokenamon.model.VolatileAilment confusion =
+                        user.getVolatileAilment(VolatileAilment.CONFUSION);
+                confusion.setTurns(confusion.getTurns() - 1);
+
+                if (confusion.getTurns() <= 0) {
+                    user.removeVolatileAilment(VolatileAilment.CONFUSION);
+                    user.notifyConfusionSnap(user);
+                } else if (rand.nextBoolean()) {
+                    BattleMove confusionHit = new BattleMove("confusion-hit", DamageClass.PHYSICAL,
+                            Type.NORMAL, TargetType.USER, 40, 0);
+                    user.takeDamage(computeDamage(user, confusionHit, user));
+                    user.notifyConfusion(user);
+                    return;
+                }
             }
-        }
 
-        double typeEffectiveness = TypeChart.getEffectiveness(move.getType(), target.getTypes());
-
-        if (move.getDamageClass() != DamageClass.STATUS) {
-            if (typeEffectiveness == 0.0) {
-                user.notifyImmune();
-                return;
-            } else if (typeEffectiveness == 0.5) {
-                user.notifyResist();
-            } else if (typeEffectiveness == 2) {
-                user.notifyEffective();
-            }
-        }
-
-        if (ArenaRegistry.requiresAilment(move)) {
-            if (target.getAilment().getType() != ArenaRegistry.getRequiredAilment(move)) {
-                user.notifyMoveFail(move);
+            if (user.hasVolatileElement(VolatileAilment.FLINCH)) {
+                user.removeVolatileAilment(VolatileAilment.FLINCH);
+                user.notifyFlinch(user);
                 return;
             }
+
+            if (move.getAccuracy() > 0 && !ArenaRegistry.alwaysHits(move) && canHit(user, move, target)) {
+                if (move.getName().equals("high-jump-kick") || move.getName().equals("jump-kick")) {
+                    int recoil = (int) Math.floor(user.getTotalHp() / 2.0);
+                    user.takeDamage(recoil);
+                    user.notifyRecoil(user);
+                }
+                user.notifyMoveMiss(move);
+                return;
+            }
+
+            if (ArenaRegistry.isMoveWithSpecialAilment(move)) {
+                inflictAilment(null, move.getName(), 0, target, false);
+
+                if (move.getName().equals("tar-shot")) {
+                    if (rand.nextBoolean()) {
+                        applyPrimaryBuffs(move, user, target);
+                    }
+                }
+            }
+
+            if (target.getLastMoveUsed() != null) {
+                if (!ArenaRegistry.bypassesProtect(move) && ArenaRegistry.isProtect(target.getLastMoveUsed())) {
+                    user.notifyProtect(target, move);
+                    return;
+                } else if (ArenaRegistry.bypassesProtect(move)) {
+                    user.notifyProtectFail(target, move);
+                }
+            }
+
+            double typeEffectiveness = TypeChart.getEffectiveness(move.getType(), target.getTypes());
+
+            if (move.getDamageClass() != DamageClass.STATUS) {
+                if (typeEffectiveness == 0.0) {
+                    user.notifyImmune();
+                    return;
+                } else if (typeEffectiveness == 0.5) {
+                    user.notifyResist();
+                } else if (typeEffectiveness == 2) {
+                    user.notifyEffective();
+                }
+            }
+
+            if (ArenaRegistry.requiresAilment(move)) {
+                if (target.getAilment().getType() != ArenaRegistry.getRequiredAilment(move)) {
+                    user.notifyMoveFail(move);
+                    return;
+                }
+            }
+
+            if (ArenaRegistry.isOhko(move)) { applyOhko(user, move, target); return; }
+            if (ArenaRegistry.isFixedDamage(move)) { applyFixedDamage(user, move, target); return; }
+            if (move.getDamageClass() == DamageClass.STATUS) {
+                applyStatusMove(user, move, target); return; }
+
+            applyDamageMove(user, move, target);
         }
 
-        if (ArenaRegistry.isOhko(move)) { applyOhko(user, move, target); return; }
-        if (ArenaRegistry.isFixedDamage(move)) { applyFixedDamage(user, move, target); return; }
-        if (move.getDamageClass() == DamageClass.STATUS) {
-            applyStatusMove(user, move, target); return; }
-
-        applyDamageMove(user, move, target);
-
-        resolveAilment(user, target);
-
+        resolveAilment(user, user);
         Log.d("Moving", user.getName() + "'s move is successful");
-
     }
 
     private static void applyDamageMove(BattlePokemon user, BattleMove move,
@@ -754,10 +746,27 @@ public class ArenaEngine {
         return action == sortedActions[0] ? sortedActions[1].getPokemon() : sortedActions[0].getPokemon();
     }
 
-    public static BattlePokemon getTarget(AttackAction action, AttackAction[] sortedActions) {
-        return action.getMove().getTargetType() == TargetType.USER
-                ? action.getPokemon()
-                : getOpponent(action, sortedActions);
+    public static BattlePokemon[] getTarget(AttackAction action, AttackAction[] sortedActions) {
+        TargetType type = action.getMove().getTargetType();
+
+        switch (type) {
+            case ALL_ALLIES:
+            case ALLY:
+            case USER:
+            case USERS_FIELD:
+            case USER_OR_ALLY:
+            case USER_AND_ALLIES:
+            case SELECTED_POKEMON_ME_FIRST:
+                return new BattlePokemon[]{action.getPokemon()};
+            case RANDOM_OPPONENT:
+            case OPPONENTS_FIELD:
+            case ALL_OPPONENTS:
+            case ALL_OTHER_POKEMON:
+            case SELECTED_POKEMON:
+                return new BattlePokemon[]{getOpponent(action, sortedActions)};
+            default:
+                return new BattlePokemon[]{getOpponent(action, sortedActions), action.getPokemon()};
+        }
     }
 
     private static AttackAction[] sortActions(AttackAction playerAction, AttackAction enemyAction) {

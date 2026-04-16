@@ -4,6 +4,7 @@
     android:layout_width="160dp"
     android:layout_height="190dp"
     app:cardCornerRadius="12dp"
+    android:background="@drawable/rectangle"
     app:cardElevation="4dp">
 
     <LinearLayout
@@ -11,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/rectangle"
         android:padding="8dp">
 
         <LinearLayout

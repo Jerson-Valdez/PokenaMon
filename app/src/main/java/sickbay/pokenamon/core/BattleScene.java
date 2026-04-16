@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.db.dto.PokemonDTO;
 import sickbay.pokenamon.model.Pokemon;
+import sickbay.pokenamon.model.User;
 import sickbay.pokenamon.model.VolatileAilment;
 import sickbay.pokenamon.network.PokeAPIManager;
 import sickbay.pokenamon.system.arena.ArenaEngine;
@@ -56,7 +57,7 @@ public class BattleScene extends AppCompatActivity {
 
     private LinearLayout quitButton;
     private ImageView playerSprite, enemySprite;
-    private ProgressBar playerHpBar, enemyHpBar;
+    private ProgressBar playerHpBar, playerExpBar, enemyHpBar;
     private TextView playerHp;
     private TextView playerName, playerLevel, enemyName, enemyLevel;
     private LinearLayout move1, move2, move3, move4;
@@ -92,6 +93,7 @@ public class BattleScene extends AppCompatActivity {
         playerSprite = findViewById(R.id.playerPokemonSprite);
         enemySprite = findViewById(R.id.enemyPokemonSprite);
         playerHpBar = findViewById(R.id.playerPokemonHpBar);
+        playerExpBar = findViewById(R.id.playerPokemonExpBar);
         enemyHpBar = findViewById(R.id.enemyPokemonHpBar);
         playerHp = findViewById(R.id.playerPokemonHp);
         playerName = findViewById(R.id.playerPokemonName);
@@ -175,9 +177,13 @@ public class BattleScene extends AppCompatActivity {
         playerHpBar.setMax(playerPokemon.getTotalHp());
         playerHpBar.setProgress(playerPokemon.getCurrentHp());
 
+        playerExpBar.setMax((playerPokemon.getLevel() > 1 ?  (int) Math.pow(playerPokemon.getLevel(), 3) : 9));
+        playerExpBar.setProgress(playerPokemon.getExp(), true);
+
         playerHp.setText(String.format("%,d / %,d", playerPokemon.getCurrentHp(), playerPokemon.getTotalHp()));
         playerName.setText(Localizer.formatPokemonName(playerPokemon.getName()));
         playerLevel.setText(String.format("Lv. %02d", playerPokemon.getLevel()));
+
     }
 
     private void hydrateEnemy() {
@@ -292,7 +298,6 @@ public class BattleScene extends AppCompatActivity {
             });
         });
     }
-
 
     private void updateHpBarTint(ProgressBar bar, int currentHp, int totalHp) {
         if (totalHp <= 0) return;
@@ -443,10 +448,13 @@ public class BattleScene extends AppCompatActivity {
             UserManager.getInstance().updateUserEarnedShardsByBattling(shardsEarned);
             UserManager.getInstance().updateHighestFloorWin(floor);
 
+
             boolean levelUp = false;
             while (true) {
                 int currLevel = playerPokemon.getLevel();
                 double expThreshold = currLevel == 1 ? 9 : Math.pow(currLevel, 3);
+
+                playerExpBar.setProgress(playerPokemon.getExp() + expGained, true);
 
                 if (playerPokemon.getExp() > expThreshold) {
                     playerPokemon.setLevel(currLevel + 1);

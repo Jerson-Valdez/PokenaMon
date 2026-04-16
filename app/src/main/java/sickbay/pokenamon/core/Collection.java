@@ -1,12 +1,14 @@
 package sickbay.pokenamon.core;
 
 import android.annotation.SuppressLint;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,7 +41,6 @@ public class Collection extends AppCompatActivity {
     private int levelSortCount = 0;
     private int raritySortCount = 0;
     private int dateSortCount = 0;
-
     LinkedList<CheckBox> activeFilter;
 
     @Override

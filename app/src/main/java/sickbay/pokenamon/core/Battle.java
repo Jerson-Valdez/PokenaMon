@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.db.DB;
 import sickbay.pokenamon.db.dto.PokemonDTO;
-import sickbay.pokenamon.system.arena.BattlePokemon;
 import sickbay.pokenamon.system.home.BackgroundMusicManager;
 import sickbay.pokenamon.system.home.TimeManager;
 import sickbay.pokenamon.system.home.UserManager;
@@ -131,7 +130,7 @@ public class Battle extends AppCompatActivity {
             if (duration != 0 && currentTime < duration) {
                 battleButton.setVisibility(LinearLayout.GONE);
                 battleButton.setEnabled(false);
-                battleButton.getBackground().setTint(ResourcesCompat.getColor(getResources(), R.color.secondary, null));
+                battleButton.getBackground().mutate().setTint(ResourcesCompat.getColor(getResources(), R.color.secondary, null));
 
                 new CountDownTimer(duration - currentTime, 1000) {
                     @Override
@@ -150,10 +149,8 @@ public class Battle extends AppCompatActivity {
 
                             ((TextView) battleButton.getChildAt(0)).setText("Battle!");
                             battleButton.setEnabled(true);
-                            battleButton.getBackground().setTint(ResourcesCompat.getColor(getResources(), R.color.primary, null));
+                            battleButton.getBackground().mutate().setTint(ResourcesCompat.getColor(getResources(), R.color.primary, null));
                         });
-
-
                     }
 
                     @Override
@@ -181,7 +178,7 @@ public class Battle extends AppCompatActivity {
 
                 ((TextView) battleButton.getChildAt(0)).setText("Battle!");
                 battleButton.setEnabled(true);
-                battleButton.getBackground().setTint(ResourcesCompat.getColor(getResources(), R.color.primary, null));
+                battleButton.getBackground().mutate().setTint(ResourcesCompat.getColor(getResources(), R.color.primary, null));
             }
         } else {
             noSelectedPokemonDisplay.setVisibility(LinearLayout.VISIBLE);
