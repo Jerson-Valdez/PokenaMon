@@ -98,6 +98,8 @@ public class Home extends AppCompatActivity {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
             DB.getAuthInstance(this).signOutAuthUser();
+            UserManager.getInstance().setUser(null);
+            UserManager.getInstance().setSelectedPokemonForBattle(null);
             startActivity(intent);
             finish();
             overridePendingTransition(0, 0);

@@ -399,6 +399,9 @@ public class BattleScene extends AppCompatActivity {
         if (!UserManager.getInstance().isHasBattledToday()) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
             try {
+                if (UserManager.getInstance().getUser().getLastLogin() == null) {
+                    UserManager.getInstance().getUser().setLastLogin(format.format(new Date()));
+                }
                 Date lastLogin = format.parse(UserManager.getInstance().getUser().getLastLogin());
                 Date today = format.parse(format.format(new Date()));
 
@@ -408,6 +411,7 @@ public class BattleScene extends AppCompatActivity {
                     UserManager.getInstance().updateStreak(-(UserManager.getInstance().getUser().getStreak() - 1), format.format(today));
                 }
             } catch (ParseException e) {
+
                 Log.e("Streak", e.getMessage());
             }
         }

@@ -16,6 +16,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import sickbay.pokenamon.R;
 import sickbay.pokenamon.system.home.UserManager;
 import sickbay.pokenamon.core.Home;
@@ -89,9 +92,11 @@ public class Register extends AppCompatActivity {
         db.createAuthUser(email, password,
                 (task) -> {
                     if (task.isSuccessful()) {
+                        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
                         toggleFields(true);
                         String uid = db.getAuthUser().getUid();
                         User user = new User(uid, username, email);
+                        user.setLastLogin(format.format(new Date()));
 
                         db.createUser(uid, user,
                                 (childTask) -> {
